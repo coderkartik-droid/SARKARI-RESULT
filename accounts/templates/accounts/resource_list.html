@@ -1,0 +1,71 @@
+{% extends "accounts/base_public.html" %}
+{% block title %}{{ config.title }} &middot; {{ website_settings.site_name }}{% endblock %}
+{% block content %}
+<section class="portal-list-content" aria-labelledby="listing-title">
+  <p class="portal-section-kicker">{{ config.kicker }}</p>
+  <h1 id="listing-title">{{ config.title }}</h1>
+  <p class="portal-list-intro">{{ config.intro }}</p>
+
+  <form class="portal-list-search" method="get" action="{{ request.path }}" role="search">
+    <label class="visually-hidden" for="resource-search">Search {{ config.title|lower }}</label>
+    <input id="resource-search" type="search" name="q" value="{{ query }}" placeholder="Search {{ config.title|lower }}">
+    <button type="submit">Search</button>
+  </form>
+
+  {% if page_obj.object_list %}
+    <div class="portal-listing-grid portal-listing-grid-page">
+      {% for item in page_obj %}
+        <article class="portal-listing-card-wrap">
+          <div class="portal-listing-card portal-listing-card-page portal-card-main">
+            <div class="portal-card-copy">
+              <div class="portal-listing-topline">
+                <span class="portal-icon portal-listing-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon=config.icon %}</span>
+                {% if item.display_date %}<time class="portal-status" datetime="{{ item.display_date|date:'c' }}">{{ item.display_date|date:"M j, Y" }}</time>{% endif %}
+              </div>
+              <h2><a href="{% url config.detail_name item.pk %}">{{ item.title }}</a></h2>
+              {% if item.exam %}<p class="portal-card-source">Related exam: {{ item.exam.title }}</p>{% endif %}
+              {% if item.exam_year %}<p class="portal-card-source">Exam year: {{ item.exam_year }}</p>{% endif %}
+              {% if item.closing_date %}<p class="portal-card-source">Last date to apply: {{ item.closing_date|date:"M j, Y" }}</p>{% endif %}
+              {% if item.description %}<p>{{ item.description|truncatewords:24 }}</p>{% endif %}
+              <div class="portal-card-extra-links" aria-label="Downloads and links for {{ item.title }}">
+                {% if item.exam %}
+                  {% for link in item.exam.links.all %}
+                    {% if link.is_active %}
+                      <a class="portal-hand-link" href="{{ link.url }}" target="_blank" rel="noopener noreferrer">
+                        <span class="portal-content-link-icon portal-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon=link.icon_name %}</span>
+                        <span>{{ link.link_text }}</span>
+                      </a>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+                {% if item.official_url %}
+                  <a class="portal-hand-link" href="{{ item.official_url }}" target="_blank" rel="noopener noreferrer">
+                    <span class="portal-content-link-icon portal-icon">🔗</span>
+                    <span>{% if config.kind == "result" %}View Result{% else %}Official link{% endif %}</span>
+                  </a>
+                {% endif %}
+                {% if item.pdf_file %}
+                  <a class="portal-hand-link" href="{{ item.pdf_file.url }}" target="_blank" rel="noopener noreferrer">
+                    <span class="portal-content-link-icon portal-icon">📄</span>
+                    <span>Download PDF</span>
+                  </a>
+                {% endif %}
+                {% for resource_url in item.resource_urls %}
+                  <a class="portal-hand-link" href="{{ resource_url.url }}" {% if resource_url.target == 'new' %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                    <span class="portal-content-link-icon portal-icon">🔗</span>
+                    <span>{{ resource_url.label }}</span>
+                  </a>
+                {% endfor %}
+                <a class="portal-list-detail-link" href="{% url config.detail_name item.pk %}">View details <span aria-hidden="true">&rarr;</span></a>
+              </div>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    {% include "accounts/includes/pagination.html" with page_obj=page_obj query=query %}
+  {% else %}
+    <p class="portal-list-empty" role="status">{% if query %}No results match "{{ query }}".{% else %}{{ config.empty_message }}{% endif %}</p>
+  {% endif %}
+</section>
+{% endblock %}

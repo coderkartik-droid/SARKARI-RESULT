@@ -1,0 +1,64 @@
+{% extends "accounts/base_public.html" %}
+{% block title %}Your account &middot; {{ website_settings.site_name }}{% endblock %}
+{% block body_class %} public-account-page{% endblock %}
+{% block content %}
+  <div class="page-shell">
+    <section class="auth-stage" aria-label="Your account">
+      <div class="dashboard-card">
+        <p class="eyebrow"><span class="eyebrow-line"></span> YOUR ACCOUNT</p>
+        <h1>Welcome, <span class="dashboard-name">{{ request.user.username }}</span></h1>
+        <p class="dashboard-copy">You are signed in as {{ request.user.email }}.</p>
+        <p class="form-intro">Your account is connected to the local Django authentication database.</p>
+      </div>
+    </section>
+
+    <section class="auth-stage" aria-label="Eligibility profile">
+      <div class="dashboard-card">
+        <h2>Eligibility profile</h2>
+        <p class="form-intro">
+          Save your date of birth and highest qualification once, and the eligibility checker will use them to
+          show the exams you are eligible for.
+        </p>
+        <form class="portal-form" method="post" action="{% url 'accounts:dashboard' %}">
+          {% csrf_token %}
+          {% if profile_form.non_field_errors %}
+            <div class="portal-form-error" role="alert">
+              {% for error in profile_form.non_field_errors %}
+                <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <div class="portal-form-group {% if profile_form.date_of_birth.errors %}has-error{% endif %}">
+            <label for="{{ profile_form.date_of_birth.id_for_label }}">Date of birth</label>
+            {{ profile_form.date_of_birth }}
+            {% if profile_form.date_of_birth.errors %}
+              <div class="portal-form-error" role="alert">
+                {% for error in profile_form.date_of_birth.errors %}<p>{{ error }}</p>{% endfor %}
+              </div>
+            {% else %}
+              <span class="portal-form-hint">Checked against each exam's eligible date-of-birth window.</span>
+            {% endif %}
+          </div>
+
+          <div class="portal-form-group {% if profile_form.qualification.errors %}has-error{% endif %}">
+            <label for="{{ profile_form.qualification.id_for_label }}">Highest qualification</label>
+            {{ profile_form.qualification }}
+            {% if profile_form.qualification.errors %}
+              <div class="portal-form-error" role="alert">
+                {% for error in profile_form.qualification.errors %}<p>{{ error }}</p>{% endfor %}
+              </div>
+            {% else %}
+              <span class="portal-form-hint">Matched against the qualifications accepted for each exam.</span>
+            {% endif %}
+          </div>
+
+          <div class="portal-eligibility-actions">
+            <button type="submit" class="portal-cms-button">Save profile</button>
+            <a class="portal-eligibility-reset" href="{% url 'jobs:eligibility_check' %}">See eligible exams</a>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "site_management/base.html" %}
+{% block title %}Social profiles{% endblock %}
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <span class="management-eyebrow">GLOBAL PUBLIC LINKS</span>
+      <h1>Social profiles</h1>
+      <p>Configure one profile per supported platform and choose whether it appears in the public header, footer, or both. Instagram, WhatsApp, and Facebook have visible footer defaults until saved here.</p>
+    </div>
+    <div class="management-heading-actions">
+      <a class="management-button management-public-link" href="{% url 'home' %}" target="_blank" rel="noopener noreferrer">View on website ↗</a>
+      {% if missing_platforms %}
+        <a class="management-button management-button-primary" href="{% url 'site_management:social_profile_create' %}">＋ Add profile</a>
+      {% endif %}
+    </div>
+  </div>
+  <section class="management-section-card" aria-label="Social profiles">
+    {% for profile in profiles %}
+      <article class="management-item-row">
+        <div>
+          <strong>{% if profile.pk %}{{ profile.get_platform_display }}{% else %}{{ profile.display_name }}{% endif %}</strong>
+          <span>Public location: {% if profile.pk %}{{ profile.get_display_location_display }}{% else %}Footer · default until configured{% endif %}</span>
+          <a class="management-url-link" href="{{ profile.profile_url }}" target="_blank" rel="noopener noreferrer"><code>{{ profile.profile_url }}</code><span aria-hidden="true">🔗</span></a>
+          {% if profile.accessible_label %}<span>Accessible label: {{ profile.accessible_label }}</span>{% endif %}
+        </div>
+        <span class="management-item-state {% if profile.is_active %}is-active{% else %}is-inactive{% endif %}">{% if profile.is_active %}Active{% else %}Inactive{% endif %}</span>
+        <div class="management-actions">
+          {% if profile.pk %}
+            <a href="{% url 'site_management:social_profile_edit' profile.pk %}">Edit</a>
+            <a class="management-danger-link" href="{% url 'site_management:social_profile_delete' profile.pk %}">Delete</a>
+          {% else %}
+            <a href="{% url 'site_management:social_profile_create' %}?platform={{ profile.platform }}">Customize in CMS</a>
+          {% endif %}
+        </div>
+      </article>
+    {% empty %}
+      <p class="management-empty management-empty-large">No social profiles are configured. Add Telegram, Instagram, Facebook, or WhatsApp to show the selected social link locations.</p>
+    {% endfor %}
+  </section>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% comment %}
+One optional URL entry inside a content block. The content type (Icon / Link /
+Text) decides which of the fields below are shown; the remaining fields are
+hidden by `management_nested_links.js` without losing their saved values.
+{% endcomment %}
+<div class="management-nested-row" data-link-row>
+  <div class="management-nested-row-head">
+    <span class="management-nested-row-title">URL entry</span>
+    <div class="management-nested-row-actions">
+      <button type="button" class="management-button management-button-quiet" data-link-move="up" aria-label="Move this entry up">↑ Move up</button>
+      <button type="button" class="management-button management-button-quiet" data-link-move="down" aria-label="Move this entry down">↓ Move down</button>
+      <button type="button" class="management-button management-button-quiet management-danger-link" data-link-remove>Remove</button>
+    </div>
+  </div>
+  {{ link_form.id }}
+  {{ link_form.display_order }}
+  <div class="management-form-grid management-subform">
+    {% for field in link_form.visible_fields %}
+      {% if field.name == "DELETE" %}
+        <span class="management-delete-holder" hidden>{{ field }}</span>
+      {% else %}
+        <div class="management-field {% if field.field.widget.input_type == 'checkbox' %}management-checkbox-field{% endif %}" data-link-field="{{ field.name }}">
+          {% if field.field.widget.input_type == 'checkbox' %}
+            <label class="management-checkbox-label">{{ field }}<span><strong>{{ field.label }}</strong>{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}</span></label>
+          {% else %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<small class="management-help">{{ field.help_text }}</small>{% endif %}
+          {% endif %}
+          {% for error in field.errors %}<span class="management-error">{{ error }}</span>{% endfor %}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  {% include "site_management/includes/text_style_fields.html" with editor_form=link_form %}
+</div>

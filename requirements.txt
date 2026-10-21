@@ -1,0 +1,13 @@
+Django>=5.2,<5.3
+python-dotenv>=1.0.0
+google-genai>=1.0.0
+openai>=1.0.0
+Pillow>=10.0.0
+django-allauth>=65.0.0
+requests>=2.31.0
+
+# Production / deployment (Render)
+psycopg[binary]>=3.2,<4.0
+dj-database-url>=2.1,<4.0
+whitenoise>=6.6,<7.0
+gunicorn>=23.0,<27.0

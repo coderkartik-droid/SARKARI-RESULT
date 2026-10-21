@@ -1,0 +1,26 @@
+{% extends "site_management/base.html" %}
+
+{% block title %}Message from {{ submission.name }}{% endblock %}
+
+{% block content %}
+  <a class="management-back-link" href="{% url 'site_management:contact_messages' %}">← Back to messages</a>
+  <div class="management-page-heading">
+    <div>
+      <span class="management-eyebrow">CONTACT MESSAGE</span>
+      <h1>{{ submission.name }}</h1>
+      <p>Submitted {{ submission.created_at|date:"M j, Y, g:i A" }}</p>
+    </div>
+    <div class="management-heading-actions">
+      <a class="management-button management-public-link" href="{% url 'contact_us' %}" target="_blank" rel="noopener noreferrer">View contact page ↗</a>
+    </div>
+  </div>
+
+  <article class="management-form-card management-message-detail">
+    <dl>
+      <div><dt>Phone Number</dt><dd>{{ submission.phone_number }}</dd></div>
+      <div><dt>Email</dt><dd><a href="mailto:{{ submission.email }}">{{ submission.email }}</a></dd></div>
+      <div><dt>Subject</dt><dd>{{ submission.subject }}</dd></div>
+      <div><dt>Message</dt><dd>{{ submission.message|linebreaksbr }}</dd></div>
+    </dl>
+  </article>
+{% endblock %}

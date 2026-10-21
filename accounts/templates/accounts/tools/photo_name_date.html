@@ -1,0 +1,107 @@
+{% extends "accounts/base_public.html" %}
+{% load static %}
+{% block title %}Photo Name &amp; Date Maker &middot; Photo Tools &middot; {{ website_settings.site_name }}{% endblock %}
+{% block meta_description %}<meta name="description" content="Add your name and the date onto a photo for online applications. Preview and download as PNG or JPEG — processed in your browser.">{% endblock %}
+
+{% block content %}
+<section class="portal-content-section tool-page" aria-labelledby="tool-title">
+  <nav class="tool-breadcrumb" aria-label="Breadcrumb">
+    <a href="{% url 'tools' %}">Tools</a> <span aria-hidden="true">/</span> <span>Photo Name &amp; Date Maker</span>
+  </nav>
+
+  <div class="portal-section-heading">
+    <div>
+      <p class="portal-section-kicker">Photo tool</p>
+      <h1 id="tool-title">Photo Name &amp; Date Maker</h1>
+      <p>Add a name and date onto your photo with a clear, readable label. Preview the result and download it as PNG or JPEG.</p>
+    </div>
+  </div>
+
+  <p id="nd-error" class="tool-error" role="alert" hidden></p>
+
+  <div class="tool-card">
+    <div class="tool-field">
+      <label for="nd-file">Choose an image (JPG, JPEG or PNG)</label>
+      <input type="file" id="nd-file" accept="image/jpeg,image/png,.jpg,.jpeg,.png">
+    </div>
+
+    <div id="nd-empty" class="tool-empty">No image selected yet. Choose a file above to begin.</div>
+
+    <div id="nd-workspace" hidden>
+      <div class="tool-layout">
+        <div>
+          <h2 class="tool-subtitle">Preview</h2>
+          <div class="tool-preview">
+            <canvas id="nd-canvas" aria-label="Preview of photo with name and date"></canvas>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="tool-subtitle">Label settings</h2>
+          <div class="tool-field">
+            <label for="nd-name">Name</label>
+            <input type="text" id="nd-name" maxlength="80" placeholder="e.g. Rahul Sharma" autocomplete="off">
+          </div>
+          <div class="tool-field">
+            <label for="nd-date">Date</label>
+            <input type="text" id="nd-date" maxlength="40" placeholder="e.g. 16/10/2026" autocomplete="off">
+          </div>
+          <div class="tool-row">
+            <div class="tool-field">
+              <label for="nd-position">Placement</label>
+              <select id="nd-position">
+                <option value="top">Top</option>
+                <option value="bottom" selected>Bottom</option>
+              </select>
+            </div>
+            <div class="tool-field">
+              <label for="nd-size">Font size</label>
+              <select id="nd-size">
+                <option value="small">Small</option>
+                <option value="medium" selected>Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+          </div>
+          <div class="tool-row">
+            <div class="tool-field">
+              <label for="nd-color">Text colour</label>
+              <select id="nd-color">
+                <option value="white" selected>White</option>
+                <option value="black">Black</option>
+                <option value="saffron">Saffron</option>
+                <option value="navy">Navy</option>
+              </select>
+            </div>
+            <div class="tool-field">
+              <label for="nd-format">Download format</label>
+              <select id="nd-format">
+                <option value="image/png">PNG</option>
+                <option value="image/jpeg">JPEG</option>
+              </select>
+            </div>
+          </div>
+          <div class="tool-field">
+            <label class="tool-checkbox" for="nd-strip">
+              <input type="checkbox" id="nd-strip" checked>
+              Add background strip for readability
+            </label>
+          </div>
+
+          <div class="tool-actions">
+            <a class="tool-btn tool-btn--primary" id="nd-download" href="#" download>Download image</a>
+            <button type="button" class="tool-btn tool-btn--ghost" id="nd-reset">Reset</button>
+            <button type="button" class="tool-btn tool-btn--ghost" id="nd-remove">Remove Image</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="tool-note">Your photo is processed locally in your browser and is never uploaded or stored on our servers.</p>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'accounts/tool_photo_name_date.js' %}" defer></script>
+{% endblock %}

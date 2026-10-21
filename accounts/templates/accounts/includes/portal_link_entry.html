@@ -1,0 +1,29 @@
+{% load styling_extras %}{% comment %}
+One saved URL entry, rendered according to its content type:
+
+* ``text`` — the entered text on its own, in blue, with no link or icon.
+* ``icon`` — an uploaded image if present (it wins), otherwise the chosen
+  built-in icon, followed by the optional label, as a link.
+* ``link`` — a labelled link to the saved destination.
+
+Callers keep wrapping this in their own ``portal-hand-link`` list.
+{% endcomment %}{% spaceless %}
+{% if link.link_type == "text" %}
+<span class="portal-hand-link-text" style="{% element_style link 'link_label' %}{% if link.icon_style %};{{ link.icon_style }}{% endif %}">{{ link.label }}</span>
+{% elif link.link_type == "icon" %}
+<a class="portal-hand-link" href="{{ link.url }}"{% if link.open_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>
+  {% if link.image %}<img class="portal-content-link-icon" src="{{ link.image.url }}" alt="" loading="lazy">
+  {% elif link.icon_url %}<img class="portal-content-link-icon" src="{{ link.icon_url }}" alt="" loading="lazy" style="{{ link.icon_style }}">
+  {% elif link.icon %}<span class="portal-content-link-icon portal-icon" style="{{ link.icon_style }}">{% include "accounts/includes/portal_icon.html" with icon=link.icon %}</span>{% endif %}
+  {% if link.label %}<span style="{% element_style link 'link_label' %}">{{ link.label }}{% if link.description %}<small style="{% element_style link 'description' %}">{{ link.description }}</small>{% endif %}</span>{% endif %}
+  <span aria-hidden="true">↗</span>
+</a>
+{% else %}
+<a class="portal-hand-link" href="{{ link.url }}"{% if link.open_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>
+  {% if link.icon_url %}<img class="portal-content-link-icon" src="{{ link.icon_url }}" alt="" loading="lazy" style="{{ link.icon_style }}">
+  {% elif link.icon %}<span class="portal-content-link-icon portal-icon" style="{{ link.icon_style }}">{% include "accounts/includes/portal_icon.html" with icon=link.icon %}</span>{% endif %}
+  <span style="{% element_style link 'link_label' %}">{{ link.label }}{% if link.description %}<small style="{% element_style link 'description' %}">{{ link.description }}</small>{% endif %}</span>
+  <span aria-hidden="true">↗</span>
+</a>
+{% endif %}
+{% endspaceless %}

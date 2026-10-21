@@ -1,0 +1,155 @@
+{% extends "accounts/base_public.html" %}
+{% load static %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'comments/comments.css' %}">
+  <script src="{% static 'comments/comments.js' %}" defer></script>
+{% endblock %}
+{% block title %}Comments Dashboard · {{ website_settings.site_name }}{% endblock %}
+{% block meta_description %}<meta name="description" content="Read and share useful community comments on Sarkari Result updates.">{% endblock %}
+{% block body_class %} comments-site{% endblock %}
+{% block content %}
+  <div class="comments-page">
+
+    {# ── Page header ───────────────────────────────────────── #}
+    <header class="comments-page-header">
+      <p class="comments-page-eyebrow">
+        <span class="comments-page-eyebrow-dot" aria-hidden="true"></span>
+        Community
+      </p>
+      <h1 class="comments-page-title">Comments Dashboard</h1>
+      <p class="comments-page-desc">Ask a question, share an update, or point out something useful for other applicants. All comments are visible to the community once published.</p>
+    </header>
+
+    {# ── Stats cards ───────────────────────────────────────── #}
+    <div class="comments-stats" aria-label="Comment statistics">
+      <div class="comments-stat-card comments-stat-card--total">
+        <span class="comments-stat-label">Total submitted</span>
+        <span class="comments-stat-value">{{ total_count }}</span>
+      </div>
+      <div class="comments-stat-card comments-stat-card--published">
+        <span class="comments-stat-label">Published</span>
+        <span class="comments-stat-value">{{ published_count }}</span>
+      </div>
+      <div class="comments-stat-card comments-stat-card--page">
+        <span class="comments-stat-label">Page</span>
+        <span class="comments-stat-value">{{ page_obj.number }}<small style="font-size:.5em;font-weight:500;color:var(--public-muted)"> / {{ page_obj.paginator.num_pages }}</small></span>
+      </div>
+    </div>
+
+    {# ── Flash messages ────────────────────────────────────── #}
+    {% if messages %}
+      <div class="comments-messages" role="status" aria-live="polite">
+        {% for message in messages %}
+          <p class="comments-message comments-message--{{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {# ── Two-column layout ─────────────────────────────────── #}
+    <div class="comments-layout">
+
+      {# ── Compose panel ─────────────────────────────────── #}
+      <section class="comments-compose" aria-labelledby="compose-heading">
+        <div class="comments-compose-heading">
+          <span class="comments-compose-icon" aria-hidden="true">+</span>
+          <div class="comments-compose-meta">
+            <span class="comments-compose-kicker">Add to the board</span>
+            <h2 id="compose-heading">Leave a comment</h2>
+          </div>
+        </div>
+
+        {% if request.user.is_authenticated %}
+          <p class="comments-signed-in">Posting as <strong>{{ request.user.username }}</strong></p>
+          <form method="post" action="{% url 'comments:list' %}" class="comments-form">
+            {% csrf_token %}
+            <label for="{{ form.body.id_for_label }}">{{ form.body.label }}</label>
+            {% with textarea_id=form.body.id_for_label %}
+              {{ form.body }}
+              <p class="visually-hidden" id="{{ textarea_id }}-description">Your comment is published under your account name and can be up to 2,000 characters long.</p>
+              <ul class="comments-errors" id="{{ textarea_id }}-errors"{% if not form.body.errors %} hidden{% endif %}>
+                {% for error in form.body.errors %}<li>{{ error }}</li>{% endfor %}
+              </ul>
+            {% endwith %}
+            {% if form.non_field_errors %}
+              <ul class="comments-errors">
+                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+              </ul>
+            {% endif %}
+            <div class="comments-form-footer">
+              <span class="comments-character-count" id="comments-character-count">2,000 characters remaining</span>
+              <span class="visually-hidden" id="comments-character-announcement" aria-live="polite" aria-atomic="true"></span>
+              <button type="submit" data-comment-submit>
+                <span data-comment-submit-label>Post comment</span>
+                <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </form>
+        {% else %}
+          <p class="comments-compose-copy">Sign in to add a comment. Your account name will appear alongside your contribution.</p>
+          {% url 'accounts:login' as login_url %}
+          <a class="comments-login-button" href="{{ login_url }}?next={{ request.path|urlencode }}">
+            Log in to comment <span aria-hidden="true">→</span>
+          </a>
+          <p class="comments-signup-note">New here? <a href="{% url 'accounts:signup' %}">Create an account</a></p>
+        {% endif %}
+
+        <p class="comments-guideline">
+          <span class="comments-guideline-icon" aria-hidden="true">i</span>
+          Keep it helpful and respectful. Staff may moderate or remove inappropriate comments.
+        </p>
+      </section>
+
+      {# ── Feed section ──────────────────────────────────── #}
+      <section class="comments-feed" id="comments" aria-labelledby="feed-heading">
+        <div class="comments-feed-header">
+          <div class="comments-feed-title-group">
+            <span class="comments-feed-kicker">From the community</span>
+            <h2 id="feed-heading" class="comments-feed-title">Published comments</h2>
+          </div>
+          <span class="comments-count-badge">{{ published_count }} published</span>
+        </div>
+
+        {% if comments %}
+          <ol class="comments-list">
+            {% for comment in comments %}
+              <li class="comments-entry">
+                <div class="comments-entry-meta">
+                  <span class="comments-avatar" aria-hidden="true">{{ comment.author.username|first|upper }}</span>
+                  <span class="comments-author">{{ comment.author.username }}</span>
+                  <span class="comments-entry-sep" aria-hidden="true">·</span>
+                  <time class="comments-entry-date" datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"j M Y" }}</time>
+                  <span class="comments-status-badge">Published</span>
+                </div>
+                <p class="comments-entry-body">{{ comment.body }}</p>
+              </li>
+            {% endfor %}
+          </ol>
+
+          {% if page_obj.has_other_pages %}
+            <nav class="comments-pagination" aria-label="Comment pages">
+              {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}#comments" aria-label="Previous page">← Newer</a>
+              {% else %}
+                <span aria-disabled="true">← Newer</span>
+              {% endif %}
+              <span class="comments-page-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+              {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}#comments" aria-label="Next page">Older →</a>
+              {% else %}
+                <span aria-disabled="true">Older →</span>
+              {% endif %}
+            </nav>
+          {% endif %}
+
+        {% else %}
+          <div class="comments-empty">
+            <span class="comments-empty-icon" aria-hidden="true">✳</span>
+            <h3>The board is quiet for now.</h3>
+            <p>Once a comment is published, it will appear here. Be the first to share something useful.</p>
+          </div>
+        {% endif %}
+      </section>
+
+    </div>
+  </div>
+{% endblock %}

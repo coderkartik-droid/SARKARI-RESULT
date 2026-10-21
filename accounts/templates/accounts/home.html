@@ -1,0 +1,282 @@
+{% extends "accounts/base_public.html" %}
+{% block title %}{{ website_settings.site_name }} &middot; {{ website_settings.tagline }}{% endblock %}
+{% block meta_description %}<meta name="description" content="{{ website_settings.hero_description }}">{% endblock %}
+{% block content %}
+        <section class="portal-hero" aria-labelledby="hero-title">
+          <div class="portal-hero-copy">
+            <p class="portal-eyebrow"><span></span> {{ website_settings.header_text }}</p>
+            <h1 id="hero-title"><span>{{ website_settings.hero_title }}</span></h1>
+            <p class="portal-hero-description">{{ website_settings.hero_description }}</p>
+            {% if website_settings.announcement %}<div class="portal-cms-announcement" role="status">{{ website_settings.announcement }}</div>{% endif %}
+            {% if website_settings.hero_note_title or website_settings.hero_note_body or website_settings.hero_note_footer %}
+              <aside class="portal-cms-announcement" aria-label="Homepage editorial note">
+                {% if website_settings.hero_note_title %}<strong>{{ website_settings.hero_note_title }}</strong>{% endif %}
+                {% if website_settings.hero_note_body %}<p>{{ website_settings.hero_note_body }}</p>{% endif %}
+                {% if website_settings.hero_note_footer %}<small>{{ website_settings.hero_note_footer }}</small>{% endif %}
+              </aside>
+            {% endif %}
+            {% if hero_actions %}
+              <div class="portal-cms-actions">
+                {% for action in hero_actions %}
+                  {% if action.is_active and action.label and action.url %}
+                    <a class="portal-cms-button" href="{{ action.url }}" {% if action.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ action.label }}</a>
+                  {% endif %}
+                  {% for link in action.visible_links %}
+                    <a class="portal-cms-button portal-cms-button-secondary" href="{{ link.url }}" {% if link.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %} {% if link.icon_style %}style="{{ link.icon_style }}"{% endif %}>
+                      {% if link.icon_url %}<img class="portal-content-link-icon" src="{{ link.icon_url }}" alt="" loading="lazy">
+                      {% elif link.icon %}<span class="portal-content-link-icon portal-icon" style="{{ link.icon_style }}">{% include "accounts/includes/portal_icon.html" with icon=link.icon %}</span>{% endif %}
+                      {{ link.label }}
+                    </a>
+                  {% endfor %}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+        </section>
+
+        <div class="portal-home-search">
+          <form class="portal-search" role="search" method="get" action="{% url 'home' %}" data-search-form>
+            <label class="visually-hidden" for="portal-search-input">Search by exam, organization, or keyword</label>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="10.8" cy="10.8" r="6.8"></circle>
+              <path d="m16 16 4.3 4.3"></path>
+            </svg>
+            <input
+              id="portal-search-input"
+              type="search"
+              name="q"
+              value="{{ query }}"
+              placeholder="Search exams, organizations, or keywords"
+              autocomplete="off"
+              data-search-input
+            />
+            <button type="submit">Search</button>
+          </form>
+          <p class="portal-search-status" id="search-status" role="status" aria-live="polite" data-search-status>
+            {% if query %}
+              {% if result_count %}{{ result_count }} result{{ result_count|pluralize }} matching “{{ query }}”.{% endif %}
+            {% else %}
+              Search for exams, results, and study resources.
+            {% endif %}
+          </p>
+        </div>
+
+        {% if announcement_items %}
+          <section class="portal-announcement-list" aria-label="Announcements">
+            {% for announcement in announcement_items %}
+              {% if announcement.is_active and announcement.label or announcement.is_active and announcement.body %}
+                <p>
+                  {% if announcement.url and announcement.label %}<a href="{{ announcement.url }}" {% if announcement.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ announcement.label }}</a>{% elif announcement.label %}{{ announcement.label }}{% endif %}
+                  {% if announcement.body %}<span>{{ announcement.body }}</span>{% endif %}
+                  {% for link in announcement.visible_links %}
+                    <a href="{{ link.url }}" {% if link.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                      {% if link.icon_url %}<img class="portal-content-link-icon" src="{{ link.icon_url }}" alt="" loading="lazy">
+                      {% elif link.icon %}<span class="portal-content-link-icon portal-icon" style="{{ link.icon_style }}">{% include "accounts/includes/portal_icon.html" with icon=link.icon %}</span>{% endif %}
+                      {{ link.label }}{% if link.description %}<small>{{ link.description }}</small>{% endif %}
+                    </a>
+                  {% endfor %}
+                </p>
+              {% endif %}
+            {% endfor %}
+          </section>
+        {% endif %}
+
+        <section class="portal-quick-access" aria-label="Quick access">
+          {% url 'accounts:exams' as quick_exams_url %}
+          {% url 'accounts:answer_sheets' as quick_answer_sheets_url %}
+          {% url 'accounts:registration_forms' as quick_registration_url %}
+          {% url 'tools' as quick_tools_url %}
+          {% url 'contact_us' as quick_contact_url %}
+          {% url 'accounts:results' as quick_results_url %}
+          <a class="portal-quick-card" href="{{ quick_exams_url }}">
+            <span class="portal-icon portal-quick-icon">{% include "accounts/includes/portal_icon.html" with icon="graduation-cap" %}</span>
+            <span class="portal-quick-copy">
+              <strong>Exam</strong>
+              <span>Exam announcements and official PDF downloads.</span>
+            </span>
+            <span class="portal-quick-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="portal-quick-card" href="{{ quick_answer_sheets_url }}">
+            <span class="portal-icon portal-quick-icon">{% include "accounts/includes/portal_icon.html" with icon="file-search" %}</span>
+            <span class="portal-quick-copy">
+              <strong>Answer Sheet</strong>
+              <span>Published answer-sheet PDFs with related exams.</span>
+            </span>
+            <span class="portal-quick-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="portal-quick-card" href="{{ quick_registration_url }}">
+            <span class="portal-icon portal-quick-icon">{% include "accounts/includes/portal_icon.html" with icon="contact" %}</span>
+            <span class="portal-quick-copy">
+              <strong>Registration Form</strong>
+              <span>Application forms and official application links.</span>
+            </span>
+            <span class="portal-quick-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="portal-quick-card" href="{{ quick_tools_url }}">
+            <span class="portal-icon portal-quick-icon">{% include "accounts/includes/portal_icon.html" with icon="tools" %}</span>
+            <span class="portal-quick-copy">
+              <strong>Tools</strong>
+              <span>Free browser tools to prepare photos, PDFs and documents.</span>
+            </span>
+            <span class="portal-quick-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="portal-quick-card" href="{{ quick_results_url }}">
+            <span class="portal-icon portal-quick-icon">{% include "accounts/includes/portal_icon.html" with icon="award" %}</span>
+            <span class="portal-quick-copy">
+              <strong>Result</strong>
+              <span>Published exam and recruitment results.</span>
+            </span>
+            <span class="portal-quick-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="portal-quick-card" href="{{ quick_contact_url }}">
+            <span class="portal-icon portal-quick-icon">{% include "accounts/includes/portal_icon.html" with icon="messages-square" %}</span>
+            <span class="portal-quick-copy">
+              <strong>Contact</strong>
+              <span>Send a message or find contact details.</span>
+            </span>
+            <span class="portal-quick-arrow" aria-hidden="true">↗</span>
+          </a>
+        </section>
+
+        {% for block in exam_blocks %}
+          <section class="portal-content-section" id="{{ block.id }}" aria-labelledby="{{ block.id }}-title">
+            <div class="portal-section-heading">
+              <div>
+                <p class="portal-section-kicker">{{ block.kicker }}</p>
+                <h2 id="{{ block.id }}-title">{{ block.title }}</h2>
+                <p>{{ block.intro }}</p>
+              </div>
+              <a class="portal-view-all" href="{{ block.list_url }}">View all <span aria-hidden="true">→</span></a>
+            </div>
+            {% if block.items %}
+              <div class="portal-listing-grid portal-listing-grid-page">
+                {% for exam in block.items %}
+                  <article class="portal-listing-card-wrap">
+                    <a class="portal-listing-card portal-card-main portal-full-card-link" href="{{ exam.detail_url }}" aria-label="View details for {{ exam.title }}">
+                      <div class="portal-card-copy">
+                        <div class="portal-listing-topline">
+                          <span class="portal-icon portal-listing-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon="graduation-cap" %}</span>
+                          {% if exam.exam_date %}
+                            <span class="portal-status">Exam {{ exam.exam_date|date:"M j, Y" }}</span>
+                          {% else %}
+                            <span class="portal-status">Added {{ exam.created_at|date:"M j, Y" }}</span>
+                          {% endif %}
+                        </div>
+                        <h3>{{ exam.title }}</h3>
+                        {% if exam.description %}<p>{{ exam.description|truncatewords:24 }}</p>{% endif %}
+                        <span class="portal-list-detail-link">View details <span aria-hidden="true">→</span></span>
+                      </div>
+                    </a>
+                    {% if exam.pdfs.all or exam.links.all %}
+                      <div class="portal-card-extra-links" aria-label="Downloads and links for {{ exam.title }}">
+                        {% for link in exam.links.all %}
+                          {% if link.is_active %}
+                            <a class="portal-hand-link" href="{{ link.url }}" target="_blank" rel="noopener noreferrer">
+                              <span class="portal-content-link-icon portal-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon=link.icon_name %}</span>
+                              <span>{{ link.link_text }}</span>
+                            </a>
+                          {% endif %}
+                        {% endfor %}
+                        {% for pdf in exam.pdfs.all %}
+                          {% if pdf.pdf_file %}
+                            <a class="portal-hand-link" href="{{ pdf.pdf_file.url }}" target="_blank" rel="noopener noreferrer">
+                              <span class="portal-content-link-icon portal-icon" aria-hidden="true">📄</span>
+                              <span>{{ pdf.display_name }}</span>
+                            </a>
+                          {% endif %}
+                          {% if pdf.external_link %}
+                            <a class="portal-hand-link" href="{{ pdf.external_link }}" target="_blank" rel="noopener noreferrer">
+                              <span class="portal-content-link-icon portal-icon" aria-hidden="true">🔗</span>
+                              <span>{{ pdf.link_text|default:pdf.external_link }}</span>
+                            </a>
+                          {% endif %}
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                  </article>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="portal-list-empty" role="status">{{ block.empty_message }}</p>
+            {% endif %}
+          </section>
+        {% endfor %}
+
+        {% for block in resource_blocks %}
+          <section class="portal-content-section" id="{{ block.id }}" aria-labelledby="{{ block.id }}-title">
+            <div class="portal-section-heading">
+              <div>
+                <p class="portal-section-kicker">{{ block.kicker }}</p>
+                <h2 id="{{ block.id }}-title">{{ block.title }}</h2>
+                <p>{{ block.intro }}</p>
+              </div>
+              <a class="portal-view-all" href="{{ block.list_url }}">View all <span aria-hidden="true">→</span></a>
+            </div>
+            {% if block.items %}
+              <div class="portal-listing-grid portal-listing-grid-page">
+                {% for item in block.items %}
+                  <article class="portal-listing-card-wrap">
+                    <a class="portal-listing-card portal-card-main portal-full-card-link" href="{{ item.detail_url }}" aria-label="View details for {{ item.title }}">
+                      <div class="portal-card-copy">
+                        <div class="portal-listing-topline">
+                          <span class="portal-icon portal-listing-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon=block.icon %}</span>
+                          {% if item.display_date %}<span class="portal-status">{{ item.display_date|date:"M j, Y" }}</span>{% endif %}
+                        </div>
+                        <h3>{{ item.title }}</h3>
+                        {% if item.description %}<p>{{ item.description|truncatewords:24 }}</p>{% endif %}
+                        <span class="portal-list-detail-link">View details <span aria-hidden="true">→</span></span>
+                      </div>
+                    </a>
+                    {% if item.pdf_file or item.official_url or item.resource_urls %}
+                      <div class="portal-card-extra-links" aria-label="Downloads and links for {{ item.title }}">
+                        {% if item.official_url %}
+                          <a class="portal-hand-link" href="{{ item.official_url }}" target="_blank" rel="noopener noreferrer">
+                            <span class="portal-content-link-icon portal-icon">🔗</span>
+                            <span>{% if block.kind == "result" %}View Result{% else %}Official link{% endif %}</span>
+                          </a>
+                        {% endif %}
+                        {% if item.pdf_file %}
+                          <a class="portal-hand-link" href="{{ item.pdf_file.url }}" target="_blank" rel="noopener noreferrer">
+                            <span class="portal-content-link-icon portal-icon">📄</span>
+                            <span>Download PDF</span>
+                          </a>
+                        {% endif %}
+                        {% for resource_url in item.resource_urls %}
+                          <a class="portal-hand-link" href="{{ resource_url.url }}" {% if resource_url.target == 'new' %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                            <span class="portal-content-link-icon portal-icon">🔗</span>
+                            <span>{{ resource_url.label }}</span>
+                          </a>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                  </article>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="portal-list-empty" role="status">{{ block.empty_message }}</p>
+            {% endif %}
+          </section>
+        {% endfor %}
+
+        {% if exam_blocks or resource_blocks %}<nav class="portal-jump-nav" aria-label="Jump to a section on this page">
+          <span class="portal-jump-label">On this page</span>
+          <ul class="portal-jump-list">
+            {% for block in exam_blocks %}
+              <li><a class="portal-jump-link" href="#{{ block.id }}">{{ block.title }}</a></li>
+            {% endfor %}
+            {% for block in resource_blocks %}
+              <li><a class="portal-jump-link" href="#{{ block.id }}">{{ block.title }}</a></li>
+            {% endfor %}
+          </ul>
+        </nav>{% endif %}
+
+        {% if query and not result_count %}
+          <p class="portal-no-results" data-no-results role="status" aria-live="polite">No listings match “{{ query }}”. Try a different exam or keyword.</p>
+        {% elif not has_homepage_content %}
+          <p class="portal-no-results" role="status">No public content has been published yet.</p>
+        {% else %}
+          <p class="portal-no-results" data-no-results role="status" aria-live="polite" hidden>No results match your search. Try a different exam or keyword.</p>
+        {% endif %}
+
+      {% endblock %}

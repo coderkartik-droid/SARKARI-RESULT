@@ -1,0 +1,116 @@
+{% extends "site_management/base.html" %}
+
+{% block title %}Community Comments Moderation{% endblock %}
+
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <span class="management-eyebrow">COMMUNITY FORUM</span>
+      <h1>Community Comments</h1>
+      <p>Review, approve, or reject user comments submitted to the public Community page (/comments/).</p>
+    </div>
+    <div>
+      <a class="management-button management-public-link" href="{% url 'comments:list' %}" target="_blank" rel="noopener noreferrer">View community page ↗</a>
+    </div>
+  </div>
+
+  <section class="management-stats" aria-label="Comment statistics" style="grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 24px;">
+    <article class="management-stat">
+      <span>Pending review</span>
+      <strong style="color: #b45309;">{{ pending_count }}</strong>
+      <small>Awaiting your approval</small>
+    </article>
+    <article class="management-stat">
+      <span>Published live</span>
+      <strong style="color: #047857;">{{ published_count }}</strong>
+      <small>Visible to visitors</small>
+    </article>
+    <article class="management-stat">
+      <span>Rejected</span>
+      <strong style="color: #b91c1c;">{{ rejected_count }}</strong>
+      <small>Hidden from public</small>
+    </article>
+    <article class="management-stat">
+      <span>Total comments</span>
+      <strong>{{ total_count }}</strong>
+      <small>All time submissions</small>
+    </article>
+  </section>
+
+  <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
+    <a class="management-button {% if status_filter == 'pending' %}management-button-primary{% else %}management-button-quiet{% endif %}" href="?status=pending">Pending review ({{ pending_count }})</a>
+    <a class="management-button {% if status_filter == 'published' %}management-button-primary{% else %}management-button-quiet{% endif %}" href="?status=published">Published ({{ published_count }})</a>
+    <a class="management-button {% if status_filter == 'rejected' %}management-button-primary{% else %}management-button-quiet{% endif %}" href="?status=rejected">Rejected ({{ rejected_count }})</a>
+    <a class="management-button {% if status_filter == 'all' %}management-button-primary{% else %}management-button-quiet{% endif %}" href="?status=all">All comments ({{ total_count }})</a>
+  </div>
+
+  {% if page_obj.object_list %}
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      {% for comment in page_obj %}
+        <article class="management-section-card" style="padding: 18px 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 16px; flex-wrap: wrap;">
+            <div>
+              <span class="management-status {% if comment.status == 'published' %}is-active{% elif comment.status == 'rejected' %}is-inactive{% else %}is-inactive{% endif %}" style="{% if comment.status == 'pending' %}background:#fef3c7; color:#92400e;{% elif comment.status == 'rejected' %}background:#fee2e2; color:#991b1b;{% endif %}">
+                {{ comment.get_status_display }}
+              </span>
+              <strong style="font-size: 14px; margin-left: 8px;">{{ comment.author.username }}</strong>
+              {% if comment.author.email %}
+                <span style="color: var(--management-muted); font-size: 12px; margin-left: 4px;">({{ comment.author.email }})</span>
+              {% endif %}
+            </div>
+            <time style="color: var(--management-muted); font-size: 12px;" datetime="{{ comment.created_at|date:'c' }}">
+              Submitted {{ comment.created_at|date:"M j, Y, g:i A" }}
+            </time>
+          </div>
+
+          <div style="font-size: 14px; line-height: 1.5; color: #1e293b; background: #f8fafc; border: 1px solid var(--management-line); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px;">
+            {{ comment.body|linebreaksbr }}
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+            {% if can_moderate %}
+              {% if comment.status != "published" %}
+                <form method="post" action="{% url 'site_management:comment_action' comment.pk 'publish' %}?status={{ status_filter }}" style="margin: 0;">
+                  {% csrf_token %}
+                  <button type="submit" class="management-button management-button-primary" style="min-height: 32px; padding: 0 14px; font-size: 12px; background: #059669;">
+                    ✓ Approve &amp; Publish
+                  </button>
+                </form>
+              {% endif %}
+              {% if comment.status != "rejected" %}
+                <form method="post" action="{% url 'site_management:comment_action' comment.pk 'reject' %}?status={{ status_filter }}" style="margin: 0;">
+                  {% csrf_token %}
+                  <button type="submit" class="management-button management-button-quiet" style="min-height: 32px; padding: 0 14px; font-size: 12px; color: #b91c1c;">
+                    ✗ Reject
+                  </button>
+                </form>
+              {% endif %}
+            {% endif %}
+            {% if can_delete %}
+              <form method="post" action="{% url 'site_management:comment_action' comment.pk 'delete' %}?status={{ status_filter }}" style="margin: 0;" onsubmit="return confirm('Are you sure you want to permanently delete this comment?');">
+                {% csrf_token %}
+                <button type="submit" class="management-button management-button-quiet" style="min-height: 32px; padding: 0 10px; font-size: 12px; color: #94a3b8;">
+                  Delete
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+      <nav class="management-pagination" aria-label="Comments pages" style="margin-top: 24px;">
+        {% if page_obj.has_previous %}
+          <a class="management-button management-button-secondary" href="?status={{ status_filter }}&page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a class="management-button management-button-secondary" href="?status={{ status_filter }}&page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    <p class="management-empty management-empty-large">No comments matching "{{ status_filter }}".</p>
+  {% endif %}
+{% endblock %}

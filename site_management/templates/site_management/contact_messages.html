@@ -1,0 +1,46 @@
+{% extends "site_management/base.html" %}
+
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <span class="management-eyebrow">CONTACT INBOX</span>
+      <h1>Messages</h1>
+      <p>Messages submitted through the Contact Us form, newest first.</p>
+    </div>
+    <div class="management-heading-actions">
+      <a class="management-button management-public-link" href="{% url 'contact_us' %}" target="_blank" rel="noopener noreferrer">View contact page ↗</a>
+    </div>
+  </div>
+
+  {% if page_obj.object_list %}
+    <div class="management-section-card management-message-list">
+      {% for submission in page_obj %}
+        <a class="management-message-row" href="{% url 'site_management:contact_message_detail' submission.pk %}">
+          <span class="management-message-sender">
+            <strong>{{ submission.name }}</strong>
+            <span>{{ submission.phone_number }}</span>
+          </span>
+          <span class="management-message-email">{{ submission.email }}</span>
+          <time datetime="{{ submission.created_at|date:'c' }}">{{ submission.created_at|date:"M j, Y, g:i A" }}</time>
+          <span class="management-message-preview">{{ submission.message|truncatechars:110 }}</span>
+        </a>
+      {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+      <nav class="management-pagination" aria-label="Messages pages">
+        {% if page_obj.has_previous %}
+          <a class="management-button management-button-secondary" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a class="management-button management-button-secondary" href="?page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    <p class="management-empty management-empty-large">No messages yet.</p>
+  {% endif %}
+{% endblock %}

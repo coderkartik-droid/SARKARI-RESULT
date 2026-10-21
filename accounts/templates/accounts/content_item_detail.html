@@ -1,0 +1,61 @@
+{% extends "accounts/base_public.html" %}
+{% block title %}{% if item.label %}{{ item.label }}{% else %}{{ section.title }}{% endif %} &middot; {{ website_settings.site_name }}{% endblock %}
+{% block content %}<div class="portal-shell portal-list-page">
+<article class="portal-list-detail {{ block_classes }}" {% if block_style %}style="{{ block_style }}"{% endif %} aria-label="{{ item.accessible_label|default:item.label|default:section.title }}">
+        <p class="portal-section-kicker">{{ section.title }}</p>
+        {% if item.icon %}<span class="portal-icon portal-listing-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon=item.icon %}</span>{% endif %}
+        {% if item.eyebrow_text or item.badge_text %}<div class="portal-card-labels">{% if item.eyebrow_text %}<span class="portal-card-eyebrow">{{ item.eyebrow_text }}</span>{% endif %}{% if item.badge_text %}<span class="portal-card-badge portal-badge--{{ item.badge_color|default:'blue' }}">{{ item.badge_text }}</span>{% endif %}</div>{% endif %}
+        {% if item.image or item.thumbnail_image %}
+          <figure class="portal-detail-image-frame portal-image-position--{{ item.image_position|default:'top-left' }}{% if item.image_alignment %} portal-image-align--{{ item.image_alignment }}{% endif %} portal-image-size--{{ item.image_size|default:'small' }} portal-image-fit--{{ item.image_fit|default:'contain' }}">
+            <span class="portal-content-image-box"><img class="portal-content-image" src="{% if item.image %}{{ item.image.url }}{% else %}{{ item.thumbnail_image.url }}{% endif %}" alt="{{ item.image_alt }}" loading="lazy"></span>
+            {% if item.image_caption or item.caption %}<figcaption class="portal-image-caption">{{ item.image_caption|default:item.caption }}</figcaption>{% endif %}
+          </figure>
+        {% endif %}
+        {% if item.label %}<h1 id="item-title"{% if title_style %} style="{{ title_style }}"{% endif %}>{{ item.label }}</h1>{% endif %}
+        {% if item.subtitle %}<p class="portal-card-subtitle"{% if subtitle_style %} style="{{ subtitle_style }}"{% endif %}>{{ item.subtitle }}</p>{% endif %}
+        {% if item.highlight_text %}<p class="portal-card-highlight">{{ item.highlight_text }}</p>{% endif %}
+        {% if item.published_at %}<time class="portal-list-date" datetime="{{ item.published_at|date:'Y-m-d' }}">Published {{ item.published_at|date:"F j, Y" }}</time>{% else %}<time class="portal-list-date" datetime="{{ item.created_at|date:'c' }}">Published {{ item.created_at|date:"F j, Y" }}</time>{% endif %}
+        {% if item.short_description %}<p class="portal-list-intro">{{ item.short_description }}</p>{% endif %}
+        {% if item.body %}<div class="portal-list-detail-copy">{{ item.body|linebreaks }}</div>{% endif %}
+        {% if item.additional_description %}<div class="portal-list-detail-copy">{{ item.additional_description|linebreaks }}</div>{% endif %}
+        {% if item.source_name %}<p class="portal-card-source">Source: {{ item.source_name }}</p>{% endif %}
+        {% if item.secondary_image %}
+          <figure class="portal-detail-image-frame portal-secondary-image">
+            <span class="portal-content-image-box"><img class="portal-content-image" src="{{ item.secondary_image.url }}" alt="" loading="lazy"></span>
+          </figure>
+        {% endif %}
+        {% if item.call_to_action %}<p class="portal-card-cta">{{ item.call_to_action }}</p>{% endif %}
+        {% with primary_text=item.primary_link_text|default:item.label %}
+          {% if item.url and primary_text or item.button_url and item.button_text or item.secondary_link_url and item.secondary_link_text %}
+            <div class="portal-detail-actions">
+              {% if item.url and primary_text %}
+                <a class="portal-cms-button" href="{{ item.url }}" {% if item.link_title %}title="{{ item.link_title }}"{% endif %} aria-label="{{ item.accessible_label|default:primary_text }}" {% if item.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ primary_text }} <span aria-hidden="true">↗</span></a>
+              {% endif %}
+              {% if item.button_url and item.button_text %}
+                <a class="portal-cms-button portal-cms-button-cta" href="{{ item.button_url }}" {% if item.link_title %}title="{{ item.link_title }}"{% endif %} {% if item.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ item.button_text }} <span aria-hidden="true">↗</span></a>
+              {% endif %}
+              {% if item.secondary_link_url and item.secondary_link_text %}
+                <a class="portal-cms-button portal-cms-button-secondary" href="{{ item.secondary_link_url }}" {% if item.link_title %}title="{{ item.link_title }}"{% endif %} {% if item.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ item.secondary_link_text }} <span aria-hidden="true">↗</span></a>
+              {% endif %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        {% if item.pdf_file or item.visible_links %}
+          <div class="portal-detail-actions portal-detail-extra-links" aria-label="Downloads and more links for this item">
+            {% if item.pdf_file %}
+              <a class="portal-hand-link" href="{{ item.pdf_file.url }}" target="_blank" rel="noopener noreferrer">
+                <span>Click here to download the PDF</span>
+              </a>
+            {% endif %}
+            {% for link in item.visible_links %}
+              <a class="portal-hand-link" href="{{ link.url }}" {% if link.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                {% if link.icon_url %}<img class="portal-content-link-icon" src="{{ link.icon_url }}" alt="" loading="lazy" style="{{ link.icon_style }}">
+                {% elif link.icon %}<span class="portal-content-link-icon portal-icon" style="{{ link.icon_style }}">{% include "accounts/includes/portal_icon.html" with icon=link.icon %}</span>{% endif %}
+                <span>{{ link.label }}{% if link.description %}<small>{{ link.description }}</small>{% endif %}</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </article>
+</div>{% endblock %}

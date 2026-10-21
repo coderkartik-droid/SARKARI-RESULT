@@ -1,0 +1,109 @@
+{% extends "site_management/base.html" %}
+
+{% block title %}AI Assistant Status{% endblock %}
+
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <span class="management-eyebrow">SYSTEM DIAGNOSTICS</span>
+      <h1>AI Assistant Status</h1>
+      <p>Read-only overview of your public AI chatbot configuration, rate limits, and daily request usage.</p>
+    </div>
+    <div>
+      <a class="management-button management-public-link" href="{% url 'home' %}" target="_blank" rel="noopener noreferrer">Test widget on homepage ↗</a>
+    </div>
+  </div>
+
+  <section class="management-stats" aria-label="AI usage statistics" style="grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 28px;">
+    <article class="management-stat">
+      <span>Assistant status</span>
+      {% if enabled and has_api_key %}
+        <strong style="color: #047857; font-size: 20px;">Active &amp; Ready</strong>
+        <small>Chatbot enabled on public pages</small>
+      {% elif not enabled %}
+        <strong style="color: #64748b; font-size: 20px;">Disabled</strong>
+        <small>AI_ENABLED is set to False</small>
+      {% else %}
+        <strong style="color: #b45309; font-size: 20px;">Key Missing</strong>
+        <small>{{ provider|upper }}_API_KEY is not configured</small>
+      {% endif %}
+    </article>
+    <article class="management-stat">
+      <span>Today's requests</span>
+      <strong>{{ today_requests }}</strong>
+      <small>{{ today_users }} active user{{ today_users|pluralize }} today</small>
+    </article>
+    <article class="management-stat">
+      <span>Rate limit</span>
+      <strong>{{ rate_limit }} / min</strong>
+      <small>Throttled per client IP</small>
+    </article>
+  </section>
+
+  <article class="management-section-card" style="padding: 24px; margin-bottom: 28px;">
+    <h2 style="font-size: 18px; margin-top: 0; margin-bottom: 8px;">Configuration Profile</h2>
+    <p style="color: var(--management-muted); font-size: 13px; margin-bottom: 20px;">
+      These settings are loaded securely from your environment variables (.env). API credentials and secret keys are never displayed in the browser.
+    </p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+      <div style="padding: 14px; background: #f8fafc; border: 1px solid var(--management-line); border-radius: 8px;">
+        <span style="display: block; font-size: 11px; color: var(--management-muted); text-transform: uppercase; font-weight: 700;">Provider</span>
+        <strong style="font-size: 14px; text-transform: capitalize;">{{ provider }}</strong>
+      </div>
+      <div style="padding: 14px; background: #f8fafc; border: 1px solid var(--management-line); border-radius: 8px;">
+        <span style="display: block; font-size: 11px; color: var(--management-muted); text-transform: uppercase; font-weight: 700;">AI Model</span>
+        <strong style="font-size: 14px; font-family: monospace;">{{ model_name }}</strong>
+      </div>
+      <div style="padding: 14px; background: #f8fafc; border: 1px solid var(--management-line); border-radius: 8px;">
+        <span style="display: block; font-size: 11px; color: var(--management-muted); text-transform: uppercase; font-weight: 700;">API Key Configured</span>
+        {% if has_api_key %}
+          <span style="color: #047857; font-weight: 700; font-size: 14px;">✓ Configured securely in .env</span>
+        {% else %}
+          <span style="color: #b91c1c; font-weight: 700; font-size: 14px;">✗ Missing or placeholder key</span>
+        {% endif %}
+      </div>
+      <div style="padding: 14px; background: #f8fafc; border: 1px solid var(--management-line); border-radius: 8px;">
+        <span style="display: block; font-size: 11px; color: var(--management-muted); text-transform: uppercase; font-weight: 700;">Conversation History</span>
+        <strong style="font-size: 14px;">Stateless</strong>
+        <small style="display: block; color: var(--management-muted); font-size: 11px;">Transcripts are not saved to database</small>
+      </div>
+    </div>
+
+    <div style="margin-top: 18px; padding: 12px 16px; background: #f1f5f9; border-radius: 8px; font-size: 12px; color: #475569; line-height: 1.5;">
+      <strong>Note on Availability:</strong> The status above verifies that local environment settings are configured. Live API connectivity to {{ provider|title }} servers occurs securely on-demand when visitors chat with the assistant on the website.
+    </div>
+  </article>
+
+  <article class="management-section-card" style="padding: 24px;">
+    <h2 style="font-size: 18px; margin-top: 0; margin-bottom: 8px;">Recent Daily Request Metrics</h2>
+    <p style="color: var(--management-muted); font-size: 13px; margin-bottom: 20px;">
+      Usage recorded by calendar day. Counters naturally reset daily in the server's local timezone.
+    </p>
+
+    {% if recent_usage %}
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--management-line); color: var(--management-muted);">
+              <th style="padding: 10px 12px;">Date</th>
+              <th style="padding: 10px 12px;">Total Requests</th>
+              <th style="padding: 10px 12px;">Active Users</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in recent_usage %}
+              <tr style="border-bottom: 1px solid var(--management-line);">
+                <td style="padding: 10px 12px; font-weight: 600;">{{ row.usage_date|date:"M j, Y" }}</td>
+                <td style="padding: 10px 12px;">{{ row.requests }}</td>
+                <td style="padding: 10px 12px;">{{ row.users }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="management-empty" style="margin: 0; padding: 24px; text-align: center;">No AI request usage recorded in the last 7 days.</p>
+    {% endif %}
+  </article>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "accounts/base_public.html" %}
+{% block title %}Page unavailable &middot; {{ website_settings.site_name }}{% endblock %}
+{% block assistant_widget %}{% endblock %}
+{% block content %}
+  <div class="portal-shell portal-list-page">
+    <section class="portal-list-content" aria-labelledby="unavailable-title">
+      <p class="portal-section-kicker">PAGE UNAVAILABLE</p>
+      <h1 id="unavailable-title">This page is currently unavailable.</h1>
+      <p>The requested public content could not be found.</p>
+      <a class="portal-view-all" href="{% url 'home' %}">Return to the homepage</a>
+    </section>
+  </div>
+{% endblock %}

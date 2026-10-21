@@ -1,0 +1,83 @@
+{% extends "accounts/base_public.html" %}
+{% block title %}{{ page_title|default:"Exams" }} &middot; {{ website_settings.site_name }}{% endblock %}
+{% block content %}
+<section class="portal-list-content" aria-labelledby="listing-title">
+  <p class="portal-section-kicker">{{ page_kicker|default:"EXAM ANNOUNCEMENTS" }}</p>
+  <h1 id="listing-title">{{ page_title|default:"Exams" }}</h1>
+  <p class="portal-list-intro">{{ page_intro|default:"Official exam notifications, syllabus, and related documents." }}</p>
+
+  <nav class="portal-list-header" aria-label="Exam categories">
+    <a class="portal-view-all" href="{% url 'accounts:exams' %}">All exams</a>
+    <a class="portal-view-all" href="{% url 'accounts:upcoming_exams' %}">Upcoming exams <span aria-hidden="true">&rarr;</span></a>
+    <a class="portal-view-all" href="{% url 'accounts:recent_exams' %}">Recent exams <span aria-hidden="true">&rarr;</span></a>
+  </nav>
+
+  <form class="portal-list-search" method="get" action="{{ list_url|default:'' }}" role="search">
+    <label class="visually-hidden" for="exams-search">Search exams</label>
+    <input id="exams-search" type="search" name="q" value="{{ query }}" placeholder="Search exams">
+    <button type="submit">Search</button>
+  </form>
+
+  {% if page_obj.object_list %}
+    <div class="portal-listing-grid portal-listing-grid-page">
+      {% for exam in page_obj %}
+        <article class="portal-listing-card-wrap">
+          <div class="portal-listing-card portal-listing-card-page portal-card-main">
+            <div class="portal-card-copy">
+              <div class="portal-listing-topline">
+                <span class="portal-icon portal-listing-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon="graduation-cap" %}</span>
+                <time class="portal-status" datetime="{{ exam.created_at|date:'c' }}">Added {{ exam.created_at|date:"M j, Y" }}</time>
+              </div>
+              <h2><a href="{% url 'accounts:exam_detail' exam.pk %}">{{ exam.title }}</a></h2>
+              {% if exam.exam_date %}<p class="portal-card-source">Exam date: {{ exam.exam_date|date:"M j, Y" }}</p>{% endif %}
+              {% if exam.description %}<p>{{ exam.description|truncatewords:24 }}</p>{% endif %}
+              {% if exam.has_dob_criteria or exam.eligible_qualifications.exists %}
+                <p class="portal-criteria-description">
+                  {% if exam.has_dob_criteria %}<span>Eligible date of birth: {{ exam.dob_criteria_display }}</span>{% endif %}
+                  {% if exam.eligible_qualifications.exists %}<span>Accepted qualifications: {{ exam.eligible_qualifications_display }}</span>{% endif %}
+                </p>
+              {% endif %}
+              {% if exam.eligibility %}
+                <p class="portal-card-badge {% if exam.eligibility.is_eligible %}portal-badge--green{% else %}portal-badge--amber{% endif %}">
+                  Your eligibility: {{ exam.eligibility.status_badge }}
+                </p>
+                <p class="portal-criteria-description">{{ exam.eligibility.status_description }}</p>
+              {% endif %}
+              <a class="portal-list-detail-link" href="{% url 'accounts:exam_detail' exam.pk %}">View details <span aria-hidden="true">&rarr;</span></a>
+            </div>
+            {% if exam.pdfs.all or exam.links.all %}
+              <div class="portal-card-extra-links" aria-label="Downloads and links for {{ exam.title }}">
+                {% for link in exam.links.all %}
+                  {% if link.is_active %}
+                    <a class="portal-hand-link" href="{{ link.url }}" target="_blank" rel="noopener noreferrer">
+                      <span class="portal-content-link-icon portal-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon=link.icon_name %}</span>
+                      <span>{{ link.link_text }}</span>
+                    </a>
+                  {% endif %}
+                {% endfor %}
+                {% for pdf in exam.pdfs.all %}
+                  {% if pdf.pdf_file %}
+                    <a class="portal-hand-link" href="{{ pdf.pdf_file.url }}" target="_blank" rel="noopener noreferrer">
+                      <span class="portal-content-link-icon portal-icon">📄</span>
+                      <span>{{ pdf.display_name }}</span>
+                    </a>
+                  {% endif %}
+                  {% if pdf.external_link %}
+                    <a class="portal-hand-link" href="{{ pdf.external_link }}" target="_blank" rel="noopener noreferrer">
+                      <span class="portal-content-link-icon portal-icon">🔗</span>
+                      <span>{{ pdf.link_text|default:pdf.external_link }}</span>
+                    </a>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    {% include "accounts/includes/pagination.html" with page_obj=page_obj query=query %}
+  {% else %}
+    <p class="portal-list-empty" role="status">{% if query %}No exams match "{{ query }}".{% else %}{{ empty_message|default:"There are no published exams yet." }}{% endif %}</p>
+  {% endif %}
+</section>
+{% endblock %}

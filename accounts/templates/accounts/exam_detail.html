@@ -1,0 +1,235 @@
+{% extends "accounts/base_public.html" %}
+{% load styling_extras %}
+{% block title %}{{ exam.title }} &middot; {{ website_settings.site_name }}{% endblock %}
+{% block meta_description %}<meta name="description" content="{{ exam.description|striptags|truncatewords:30 }}">{% endblock %}
+
+{% block content %}
+<div class="portal-detail-shell">
+
+  {# ── Breadcrumbs & Back Navigation ─────────────────────────────── #}
+  <nav class="portal-breadcrumbs" aria-label="Breadcrumb">
+    <ol class="portal-breadcrumbs-list">
+      <li><a href="{% url 'home' %}">Home</a></li>
+      <li class="portal-breadcrumb-sep" aria-hidden="true">/</li>
+      <li><a href="{{ exams_list_url }}">Exams</a></li>
+      <li class="portal-breadcrumb-sep" aria-hidden="true">/</li>
+      <li class="portal-breadcrumb-current" aria-current="page">{{ exam.title }}</li>
+    </ol>
+    <a class="portal-breadcrumb-back" href="{{ exams_list_url }}">
+      <span aria-hidden="true">&larr;</span> Back to all Exams
+    </a>
+  </nav>
+
+  {# ── Main Exam Detail Card ─────────────────────────────────────── #}
+  <article class="portal-detail-card" aria-labelledby="exam-title">
+
+    {# Header: title, badges and publication date #}
+    <header class="portal-detail-header">
+      <div class="portal-detail-heading">
+        <p class="portal-detail-kicker">EXAM ANNOUNCEMENT</p>
+        <h1 class="portal-detail-title" id="exam-title" style="{% element_style exam 'title' %}">{{ exam.title }}</h1>
+        <div class="portal-detail-tags">
+          <span class="portal-card-badge portal-badge--blue">Official Notice</span>
+          {% if exam.status == "published" %}<span class="portal-card-badge portal-badge--green">Published</span>{% endif %}
+        </div>
+      </div>
+      <div class="portal-detail-status-wrap">
+        <time class="portal-status" datetime="{{ exam.publish_at|default:exam.created_at|date:'c' }}">
+          {% if exam.publish_at %}Published {{ exam.publish_at|date:"M j, Y" }}{% else %}Added {{ exam.created_at|date:"M j, Y" }}{% endif %}
+        </time>
+      </div>
+    </header>
+
+    {# Exam Info summary box #}
+    <div class="portal-detail-summary" aria-label="Exam summary">
+      <div class="portal-summary-item">
+        <span class="portal-summary-label">Published</span>
+        <span class="portal-summary-value">{{ exam.publish_at|default:exam.created_at|date:"F j, Y" }}</span>
+      </div>
+      <div class="portal-summary-item">
+        <span class="portal-summary-label">Exam date</span>
+        <span class="portal-summary-value">{% if exam.exam_date %}{{ exam.exam_date|date:"F j, Y" }}{% else %}To be announced{% endif %}</span>
+      </div>
+      <div class="portal-summary-item">
+        <span class="portal-summary-label">Official documents</span>
+        <span class="portal-summary-value">{{ pdfs|length }} document{{ pdfs|length|pluralize }}</span>
+      </div>
+      <div class="portal-summary-item">
+        <span class="portal-summary-label">Official links</span>
+        <span class="portal-summary-value">{{ exam_links|length }} link{{ exam_links|length|pluralize }}</span>
+      </div>
+    </div>
+
+    {# Description #}
+    {% if exam.description %}
+      <section class="portal-detail-section" aria-labelledby="exam-description-heading">
+        <h2 class="portal-actions-heading" id="exam-description-heading">
+          <span class="portal-actions-heading-icon" aria-hidden="true">&#128220;</span>
+          About this examination
+        </h2>
+        <div class="portal-detail-body" style="{% element_style exam 'description' %}">
+          {{ exam.description|linebreaks }}
+        </div>
+      </section>
+    {% endif %}
+
+    {# Eligibility Criteria (DOB window + accepted qualifications) #}
+    {% if exam.has_dob_criteria or exam.eligible_qualifications.exists or exam_eligibility %}
+      <section class="portal-detail-section portal-detail-eligibility" aria-labelledby="exam-eligibility-heading">
+        <h2 class="portal-actions-heading" id="exam-eligibility-heading">
+          <span class="portal-actions-heading-icon" aria-hidden="true">&#128203;</span>
+          Eligibility Criteria
+        </h2>
+
+        {% if exam.has_dob_criteria or exam.eligible_qualifications.exists %}
+          <dl class="portal-eligibility-facts">
+            {% if exam.has_dob_criteria %}
+              <div class="portal-eligibility-fact">
+                <dt>Eligible date of birth</dt>
+                <dd>{{ exam.dob_criteria_display }}</dd>
+              </div>
+            {% endif %}
+            {% if exam.eligible_qualifications.exists %}
+              <div class="portal-eligibility-fact portal-eligibility-fact--wide">
+                <dt>Accepted qualifications</dt>
+                <dd>
+                  <span class="portal-qualification-badges">
+                    {% for qualification in exam.eligible_qualifications.all %}
+                      <span class="portal-qualification-badge">{{ qualification.name }}</span>
+                    {% endfor %}
+                  </span>
+                </dd>
+              </div>
+            {% endif %}
+          </dl>
+        {% endif %}
+
+        {% if exam_eligibility %}
+          <div class="portal-detail-eligibility-status" role="status">
+            <span class="portal-card-badge {% if exam_eligibility.is_eligible %}portal-badge--green{% else %}portal-badge--amber{% endif %}">
+              Your eligibility: {{ exam_eligibility.status_badge }}
+            </span>
+            <p class="portal-criteria-description">{{ exam_eligibility.status_description }}</p>
+          </div>
+        {% endif %}
+      </section>
+    {% endif %}
+
+    {# Official Documents & Links #}
+    {% if pdfs or exam_links or visible_links %}
+      <section class="portal-detail-section portal-detail-actions-card" aria-label="Official exam documents and links">
+        <h2 class="portal-actions-heading">
+          <span class="portal-actions-heading-icon" aria-hidden="true">&#128196;</span>
+          Official Documents &amp; Links
+        </h2>
+
+        {% if exam_links %}
+          <div class="portal-downloads-group">
+            {% for link in exam_links %}
+              {% if link.is_active %}
+                <a class="portal-download-btn portal-download-btn--external" href="{{ link.url }}" target="_blank" rel="noopener noreferrer">
+                  <span class="portal-download-btn-icon portal-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon=link.icon_name %}</span>
+                  <span class="portal-download-btn-copy">
+                    <strong>{{ link.link_text }}</strong>
+                    <small>{{ link.get_icon_type_display }} &middot; Opens in new tab</small>
+                  </span>
+                  <span class="portal-download-btn-arrow" aria-hidden="true">&nearr;</span>
+                </a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if pdfs %}
+          <div class="portal-downloads-group">
+            {% for pdf in pdfs %}
+              {% if pdf.pdf_file %}
+                <a class="portal-download-btn" href="{{ pdf.pdf_file.url }}" target="_blank" rel="noopener noreferrer">
+                  <span class="portal-download-btn-icon" aria-hidden="true">&#128196;</span>
+                  <span class="portal-download-btn-copy">
+                    <strong style="{% element_style pdf 'link_label' %}">{{ pdf.display_name }}</strong>
+                    <small>Official PDF &middot; Opens in new tab</small>
+                  </span>
+                  <span class="portal-download-btn-arrow" aria-hidden="true">&darr;</span>
+                </a>
+              {% endif %}
+              {% if pdf.external_link %}
+                <a class="portal-download-btn portal-download-btn--external" href="{{ pdf.external_link }}" target="_blank" rel="noopener noreferrer">
+                  <span class="portal-download-btn-icon" aria-hidden="true">&#128279;</span>
+                  <span class="portal-download-btn-copy">
+                    <strong style="{% element_style pdf 'link_label' %}">{{ pdf.link_text|default:pdf.external_link }}</strong>
+                    <small>Official portal link &middot; Opens in new tab</small>
+                  </span>
+                  <span class="portal-download-btn-arrow" aria-hidden="true">&nearr;</span>
+                </a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if visible_links %}
+          <div class="portal-card-extra-links" aria-label="Additional links for {{ exam.title }}">
+            {% for link in visible_links %}
+              {% include "accounts/includes/portal_link_entry.html" with link=link %}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </section>
+    {% endif %}
+
+    {# Additional ResourceURLs attached to this exam #}
+    {% if exam.resource_urls %}
+      <section class="portal-detail-section portal-detail-actions-card" aria-label="Additional links for {{ exam.title }}">
+        <h2 class="portal-actions-heading">
+          <span class="portal-actions-heading-icon" aria-hidden="true">&#128279;</span>
+          Additional Links
+        </h2>
+        <div class="portal-downloads-group">
+          {% for resource_url in exam.resource_urls %}
+            <a class="portal-download-btn portal-download-btn--external" href="{{ resource_url.url }}" {% if resource_url.target == 'new' %}target="_blank" rel="noopener noreferrer"{% endif %}>
+              <span class="portal-download-btn-icon" aria-hidden="true">&#128279;</span>
+              <span class="portal-download-btn-copy">
+                <strong>{{ resource_url.label }}</strong>
+                <small>{{ resource_url.get_target_display }} &middot; {% if resource_url.target == 'new' %}Opens in new tab{% else %}Opens in same tab{% endif %}</small>
+              </span>
+              <span class="portal-download-btn-arrow" aria-hidden="true">{% if resource_url.target == 'new' %}&nearr;{% else %}&rarr;{% endif %}</span>
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+  </article>
+
+  {# ── Related Exam Announcements ────────────────────────────────── #}
+  {% if related_exams %}
+    <section class="portal-detail-related" aria-labelledby="related-exams-heading">
+      <div class="portal-section-heading">
+        <div>
+          <p class="portal-section-kicker">MORE EXAMS</p>
+          <h2 id="related-exams-heading">Other Exam Announcements</h2>
+        </div>
+        <a class="portal-view-all" href="{{ exams_list_url }}">View all Exams <span aria-hidden="true">&rarr;</span></a>
+      </div>
+      <div class="portal-listing-grid">
+        {% for rel in related_exams %}
+          <article class="portal-listing-card-wrap">
+            <a class="portal-listing-card portal-listing-card-page portal-card-main portal-full-card-link" href="{{ rel.detail_url }}">
+              <div class="portal-card-copy">
+                <div class="portal-listing-topline">
+                  <span class="portal-icon portal-listing-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon="graduation-cap" %}</span>
+                  <span class="portal-status">{% if rel.exam_date %}Exam {{ rel.exam_date|date:"M j, Y" }}{% else %}Added {{ rel.created_at|date:"M j, Y" }}{% endif %}</span>
+                </div>
+                <h3>{{ rel.title }}</h3>
+                {% if rel.description %}<p>{{ rel.description|truncatewords:20 }}</p>{% endif %}
+                <span class="portal-list-detail-link">View details <span aria-hidden="true">&rarr;</span></span>
+              </div>
+            </a>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+</div>
+{% endblock %}

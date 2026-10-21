@@ -1,0 +1,100 @@
+{% extends "site_management/base.html" %}
+{% block title %}{{ area_label }} editor{% endblock %}
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <a class="management-back-link" href="{% url 'site_management:dashboard' %}">← Back to overview</a>
+      <span class="management-eyebrow">{{ area_label|upper }}</span>
+      <h1>{{ area_label }}</h1>
+      <p>{{ area_description }}</p>
+    </div>
+    <div class="management-heading-actions">
+      <a class="management-button management-public-link" href="{{ public_url }}" target="_blank" rel="noopener noreferrer">View on website ↗</a>
+      <a class="management-button management-button-secondary" href="{{ add_section_url }}">＋ New section</a>
+    </div>
+  </div>
+
+  {% if area == 'homepage' %}
+    <div class="management-callout" role="note">
+      <div class="management-callout-icon" aria-hidden="true">💡</div>
+      <div class="management-callout-content">
+        <strong>Homepage Display Rules (2-Item Limit)</strong>
+        <p>
+          To maintain high performance and clean formatting, the public homepage automatically displays the <strong>2 newest active items</strong> in each section.
+          All items—including older ones—remain permanently accessible through the section’s public archive page. Click <em>"View archive ↗"</em> on any section card below to view all items as visitors see them.
+        </p>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if not sections %}
+    <p class="management-empty management-empty-large">No sections in this area yet. Add your first section to start publishing {{ area_label|lower }} content.</p>
+  {% endif %}
+
+  {% for section in sections %}
+    <article class="management-section-card" id="section-{{ section.slug }}">
+      <div class="management-section-header">
+        <div class="management-section-title">
+          <span class="management-status {% if section.is_active %}is-active{% else %}is-inactive{% endif %}">{% if section.is_active %}Published{% else %}Inactive{% endif %}</span>
+          <h4>{{ section.title }}</h4>
+          <p>{{ section.description|default:"No description" }}</p>
+          <code>{{ section.slug }}</code>
+        </div>
+        <div class="management-actions">
+          {% if area == 'homepage' and section.is_active %}
+            <a class="management-public-link" href="{% url 'accounts:section_list' section.slug %}" target="_blank" rel="noopener noreferrer">View archive ↗</a>
+          {% elif area == 'tools' and section.is_active %}
+            <a class="management-public-link" href="{% url 'tools' %}" target="_blank" rel="noopener noreferrer">View tools page ↗</a>
+          {% endif %}
+          <a href="{% url 'site_management:section_edit' section.pk %}">Edit section</a>
+          <a class="management-danger-link" href="{% url 'site_management:section_delete' section.pk %}">Delete</a>
+        </div>
+      </div>
+      <div class="management-items">
+        {% for item in section.items.all %}
+          {% if not item.parent_id %}
+            <div class="management-item-row">
+              <div>
+                {% if item.image %}<img class="management-item-image" src="{{ item.image.url }}" alt="" loading="lazy">{% endif %}
+                <strong>{{ item.label|default:"Untitled content block" }}</strong>
+                {% if item.body %}<span>{{ item.body|truncatewords:20 }}</span>{% endif %}
+                {% if item.url %}<a class="management-url-link" href="{{ item.url }}" target="_blank" rel="noopener noreferrer"><code>{{ item.url }}</code><span aria-hidden="true">🔗</span></a>{% endif %}
+                {% if item.pdf_file %}<a class="management-url-link" href="{{ item.pdf_file.url }}" target="_blank" rel="noopener noreferrer"><code>PDF attached</code><span aria-hidden="true">📄</span></a>{% endif %}
+                <span>{{ item.links.count }} additional link{{ item.links.count|pluralize }}</span>
+              </div>
+              <span class="management-item-state {% if item.is_active %}is-active{% else %}is-inactive{% endif %}">{% if item.is_active %}Active{% else %}Inactive{% endif %}</span>
+              <div class="management-actions">
+                {% if area == 'homepage' and section.is_active and item.is_active %}
+                  <a class="management-public-link" href="{% url 'accounts:section_item_detail' section.slug item.pk %}" target="_blank" rel="noopener noreferrer">View on site ↗</a>
+                {% elif area == 'tools' and item.is_active and item.url %}
+                  <a class="management-public-link" href="{{ item.url }}" target="_blank" rel="noopener noreferrer">View tool ↗</a>
+                {% endif %}
+                <a href="{% url 'site_management:item_edit' item.pk %}">Edit</a>
+                <a href="{% url 'site_management:content_link_create' %}?content_item={{ item.pk }}">＋ Link</a>
+                <a class="management-danger-link" href="{% url 'site_management:item_delete' item.pk %}">Delete</a>
+              </div>
+            </div>
+            {% for child in item.children.all %}
+              <div class="management-item-row management-item-child">
+                <div>{% if child.image %}<img class="management-item-image" src="{{ child.image.url }}" alt="" loading="lazy">{% endif %}<strong>↳ {{ child.label|default:"Untitled content block" }}</strong>{% if child.url %}<a class="management-url-link" href="{{ child.url }}" target="_blank" rel="noopener noreferrer"><code>{{ child.url }}</code><span aria-hidden="true">🔗</span></a>{% endif %}</div>
+                <span class="management-item-state {% if child.is_active %}is-active{% else %}is-inactive{% endif %}">{% if child.is_active %}Active{% else %}Inactive{% endif %}</span>
+                <div class="management-actions">
+                  {% if child.is_active and child.url %}
+                    <a class="management-public-link" href="{{ child.url }}" target="_blank" rel="noopener noreferrer">View link ↗</a>
+                  {% endif %}
+                  <a href="{% url 'site_management:item_edit' child.pk %}">Edit</a>
+                  <a class="management-danger-link" href="{% url 'site_management:item_delete' child.pk %}">Delete</a>
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% empty %}
+          <p class="management-empty">No items yet. Add a link, button, or content block to get started.</p>
+        {% endfor %}
+        <a class="management-add-item" href="{% url 'site_management:item_create' section.pk %}">＋ Add item or dropdown link</a>
+      </div>
+    </article>
+  {% endfor %}
+
+  <p class="management-footnote">{{ item_count }} content block{{ item_count|pluralize }} across {{ sections|length }} section{{ sections|length|pluralize }} in this area. Edits here change the live website immediately when the section and item are marked active.</p>
+{% endblock %}

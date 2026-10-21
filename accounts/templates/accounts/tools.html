@@ -1,0 +1,92 @@
+{% extends "accounts/base_public.html" %}
+{% block title %}Photo Tools &middot; {{ website_settings.site_name }}{% endblock %}
+{% block meta_description %}<meta name="description" content="{% if tools_section and tools_section.description %}{{ tools_section.description }}{% else %}Free photo utilities to prepare images for government job applications — image resizer, JPG to PDF converter and name &amp; date on photo maker.{% endif %}">{% endblock %}
+
+{% block content %}
+<section class="portal-hero" aria-labelledby="page-title">
+  <div class="portal-hero-copy">
+    <p class="portal-eyebrow"><span></span> Tools</p>
+    <h1 id="page-title"><span>{% if tools_section %}{{ tools_section.title }}{% else %}Photo Tools{% endif %}</span></h1>
+    <p class="portal-hero-description">{% if tools_section %}{{ tools_section.description }}{% else %}Simple photo utilities to help you prepare images for government job applications — resize, convert, and format photos and signatures. Everything runs in your browser, so your photos never leave your device.{% endif %}</p>
+  </div>
+</section>
+
+<section class="portal-content-section tools-section" aria-labelledby="tools-heading">
+  <div class="portal-section-heading">
+    <div>
+      <p class="portal-section-kicker">
+        {% if tools_section.icon %}<span class="portal-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon=tools_section.icon %}</span>{% endif %}
+        {% if tools_section %}Available tools{% else %}Free &amp; private{% endif %}
+      </p>
+      <h2 id="tools-heading">Photo utilities</h2>
+      <p>{% if tools_section %}Choose a tool below. The existing utilities continue to process your files locally in your browser.{% else %}Pick a tool to get started. All processing happens locally in your browser.{% endif %}</p>
+    </div>
+  </div>
+
+  <ul class="tools-grid">
+    {% if tools_has_items %}
+      {% for item in tools_cards %}
+        <li>
+          <a class="tools-card tools-card--link" href="{{ item.tool_url }}">
+            {% if item.image or item.thumbnail_image %}
+              <span class="tools-card-icon"><img src="{% if item.image %}{{ item.image.url }}{% else %}{{ item.thumbnail_image.url }}{% endif %}" alt="" loading="lazy"></span>
+            {% else %}
+              <span class="tools-card-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon=item.icon|default:"tools" %}</span>
+            {% endif %}
+            <h3>{{ item.label }}</h3>
+            {% if item.body %}<p>{{ item.body }}</p>{% endif %}
+            <span class="tools-card-cta">Open tool <span aria-hidden="true">→</span></span>
+          </a>
+        </li>
+      {% empty %}
+        <li class="tools-empty" role="status">No tools are currently published. Please check back soon.</li>
+      {% endfor %}
+    {% else %}
+    <li>
+      <a class="tools-card tools-card--link" href="{% url 'tools_image_resizer' %}">
+        <span class="tools-card-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon="image" %}</span>
+        <h3>Image Resizer</h3>
+        <p>Resize photos to the exact dimensions and file size required by an application form.</p>
+        <span class="tools-card-cta">Open tool <span aria-hidden="true">→</span></span>
+      </a>
+    </li>
+
+    <li>
+      <a class="tools-card tools-card--link" href="{% url 'tools_jpg_to_pdf' %}">
+        <span class="tools-card-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon="document" %}</span>
+        <h3>JPG to PDF Converter</h3>
+        <p>Combine one or more JPG images into a single, upload-ready PDF document.</p>
+        <span class="tools-card-cta">Open tool <span aria-hidden="true">→</span></span>
+      </a>
+    </li>
+
+    <li>
+      <a class="tools-card tools-card--link" href="{% url 'tools_photo_name_date' %}">
+        <span class="tools-card-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon="calendar" %}</span>
+        <h3>Photo Name &amp; Date Maker</h3>
+        <p>Add your name and the date on a photo, as required for many online applications.</p>
+        <span class="tools-card-cta">Open tool <span aria-hidden="true">→</span></span>
+      </a>
+    </li>
+
+    <li>
+      <a class="tools-card tools-card--link" href="{% url 'tools_photo_signature_joiner' %}">
+        <span class="tools-card-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon="user" %}</span>
+        <h3>Photo Signature Joiner</h3>
+        <p>Join your photo and signature into one image in the layout exam portals ask for.</p>
+        <span class="tools-card-cta">Open tool <span aria-hidden="true">→</span></span>
+      </a>
+    </li>
+
+    <li>
+      <a class="tools-card tools-card--link" href="{% url 'tools_resume_cv_photo' %}">
+        <span class="tools-card-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon="badge-check" %}</span>
+        <h3>Resume/CV Photo Tool</h3>
+        <p>Quickly prepare a clean, correctly sized photo for your resume or CV.</p>
+        <span class="tools-card-cta">Open tool <span aria-hidden="true">→</span></span>
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+</section>
+{% endblock %}

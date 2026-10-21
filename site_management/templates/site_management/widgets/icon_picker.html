@@ -1,0 +1,13 @@
+<div class="management-icon-picker{% if widget.attrs.class %} {{ widget.attrs.class }}{% endif %}">
+  <select name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
+    {% for group_name, group_choices, group_index in widget.optgroups %}
+      {% for option in group_choices %}
+        {% include option.template_name with widget=option %}
+      {% endfor %}
+    {% endfor %}
+  </select>
+  <div class="management-icon-picker-preview" aria-live="polite">
+    <span class="management-icon-picker-label">Selected icon</span>
+    <span class="management-icon-picker-value">{{ widget.value|default:"none" }}</span>
+  </div>
+</div>

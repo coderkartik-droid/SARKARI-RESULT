@@ -1,0 +1,24 @@
+{% extends "site_management/base.html" %}
+{% block title %}Administrator sign in{% endblock %}
+{% block auth_content %}
+  <section class="management-login-card">
+    <span class="management-eyebrow">AUTHORIZED STAFF ONLY</span>
+    <h1>Sign in to manage your website</h1>
+    <p>Use your existing Django staff or superuser account credentials.</p>
+    {% if form.non_field_errors %}
+      <div class="management-form-errors" role="alert">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <form method="post" action="{% url 'site_management:login' %}" class="management-form">
+      {% csrf_token %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      {% for field in form %}
+        <div class="management-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}<span class="management-error">{{ error }}</span>{% endfor %}
+        </div>
+      {% endfor %}
+      <button class="management-button management-button-primary management-submit" type="submit">Continue to dashboard</button>
+    </form>
+  </section>
+{% endblock %}

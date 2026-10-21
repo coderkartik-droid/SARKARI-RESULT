@@ -1,0 +1,31 @@
+{% extends "site_management/base.html" %}
+{% block title %}{{ section.title }}{% endblock %}
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <a class="management-back-link" href="{% url 'site_management:dashboard' %}">← Back to workspace</a>
+      <span class="management-eyebrow">{{ section.eyebrow }}</span>
+      <h1>{{ section.title }}</h1>
+      <p>{{ section.description }}</p>
+    </div>
+    <div class="management-heading-actions">
+      <a class="management-button management-public-link" href="{% url 'home' %}" target="_blank" rel="noopener noreferrer">View website ↗</a>
+    </div>
+  </div>
+
+  {% if section.groups %}
+    {% for group in section.groups %}
+      {% if group.label %}<h2 class="management-subheading">{{ group.label }}</h2>{% endif %}
+      <div class="management-quick-grid">
+        {% for item in group.items %}
+          <a class="management-quick-card" href="{{ item.url }}"{% if item.external %} target="_blank" rel="noopener noreferrer"{% endif %}>
+            <strong>{{ item.label }}{% if item.external %} ↗{% endif %}</strong>
+            <span>{% if item.external %}Opens the existing screen in a new tab.{% else %}Open this page in the workspace.{% endif %}</span>
+          </a>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="management-empty management-empty-large">{{ section.empty_message|default:"Nothing is available here for your account yet." }}</p>
+  {% endif %}
+{% endblock %}

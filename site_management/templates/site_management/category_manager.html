@@ -1,0 +1,86 @@
+{% extends "site_management/base.html" %}
+{% block title %}{{ category_label }}{% endblock %}
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <a class="management-back-link" href="{% url 'site_management:dashboard' %}">← Back to workspace</a>
+      <span class="management-eyebrow">{{ category_eyebrow }}</span>
+      <h1>{{ category_label }}</h1>
+      <p>{{ category_description }}</p>
+    </div>
+    <div class="management-heading-actions">
+      <a class="management-button management-public-link" href="{{ public_url }}" target="_blank" rel="noopener noreferrer">View on website ↗</a>
+      <a class="management-button management-button-primary" href="{% url 'site_management:category_item_create' category %}">＋ Add {{ category_singular }}</a>
+    </div>
+  </div>
+
+  <section class="management-stats" aria-label="{{ category_label }} statistics" style="grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 24px;">
+    <article class="management-stat"><span>Total</span><strong>{{ total_count }}</strong><small>All {{ category_label|lower }} records</small></article>
+    <article class="management-stat"><span>Published</span><strong style="color: #047857;">{{ published_count }}</strong><small>Visible on the website</small></article>
+    <article class="management-stat"><span>Draft</span><strong style="color: #b45309;">{{ draft_count }}</strong><small>Hidden from visitors</small></article>
+  </section>
+
+  <form class="management-filter-bar" method="get" action="{% url 'site_management:category_manager' category %}" role="search">
+    <label class="management-filter-field management-filter-grow">
+      <span>Search</span>
+      <input class="management-input" type="search" name="q" value="{{ query }}" placeholder="Search {{ category_label|lower }}">
+    </label>
+    <label class="management-filter-field">
+      <span>Status</span>
+      <select class="management-input" name="status">
+        <option value=""{% if not status_filter %} selected{% endif %}>All records</option>
+        <option value="published"{% if status_filter == "published" %} selected{% endif %}>Published</option>
+        <option value="draft"{% if status_filter == "draft" %} selected{% endif %}>Draft</option>
+      </select>
+    </label>
+    <div class="management-filter-actions">
+      <button class="management-button management-button-primary" type="submit">Apply</button>
+      {% if query or status_filter %}
+        <a class="management-button management-button-quiet" href="{% url 'site_management:category_manager' category %}">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <section class="management-section-card" aria-label="Managed {{ category_label|lower }}">
+    {% for item in page_obj %}
+      <article class="management-item-row">
+        <div>
+          <strong>{{ item.label }}</strong>
+          <span>
+            {% if item.is_active %}Published{% else %}Draft{% endif %}
+            {% if item.published_at %} · {{ item.published_at|date:"M j, Y" }}{% endif %}
+            {% if item.pdf_file %} · PDF attached{% endif %}
+            {% if item.url %} · Has official link{% endif %}
+          </span>
+          {% if item.short_description %}<span>{{ item.short_description|truncatechars:160 }}</span>{% elif item.body %}<span>{{ item.body|truncatechars:160 }}</span>{% endif %}
+        </div>
+        <span class="management-item-state {% if item.is_active %}is-active{% else %}is-inactive{% endif %}">{% if item.is_active %}Live{% else %}Draft{% endif %}</span>
+        <div class="management-actions">
+          {% if item.is_active %}
+            <a class="management-public-link" href="{% url 'accounts:section_item_detail' section.slug item.pk %}" target="_blank" rel="noopener noreferrer">View on site ↗</a>
+          {% endif %}
+          <a href="{% url 'site_management:category_item_edit' category item.pk %}">Edit</a>
+          <form method="post" action="{% url 'site_management:category_item_toggle' category item.pk %}" style="display: inline;">
+            {% csrf_token %}
+            <button class="management-link-button" type="submit">{% if item.is_active %}Unpublish{% else %}Publish{% endif %}</button>
+          </form>
+          <a class="management-danger-link" href="{% url 'site_management:category_item_delete' category item.pk %}">Delete</a>
+        </div>
+      </article>
+    {% empty %}
+      <p class="management-empty management-empty-large">{% if query or status_filter %}No records match your search.{% else %}{{ empty_message }}{% endif %}</p>
+    {% endfor %}
+  </section>
+
+  {% if page_obj.has_other_pages %}
+    <nav class="management-pagination" aria-label="{{ category_label }} pages">
+      {% if page_obj.has_previous %}
+        <a class="management-button management-button-secondary" href="?q={{ query|urlencode }}&amp;status={{ status_filter|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>
+      {% endif %}
+      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a class="management-button management-button-secondary" href="?q={{ query|urlencode }}&amp;status={{ status_filter|urlencode }}&amp;page={{ page_obj.next_page_number }}">Next</a>
+      {% endif %}
+    </nav>
+  {% endif %}
+{% endblock %}

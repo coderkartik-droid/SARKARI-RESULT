@@ -1,0 +1,111 @@
+{% extends "site_management/base.html" %}
+{% block title %}{{ config.label }}{% endblock %}
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <a class="management-back-link" href="{% url 'site_management:dashboard' %}">← Back to workspace</a>
+      <span class="management-eyebrow">{{ config.eyebrow }}</span>
+      <h1>{{ config.label }}</h1>
+      <p>{{ config.description }}</p>
+    </div>
+    <div class="management-heading-actions">
+      <a class="management-button management-button-quiet" href="{% url config.public_view %}" target="_blank" rel="noopener noreferrer">View on website ↗</a>
+      <a class="management-button management-button-primary" href="{% url 'site_management:resource_create' section %}">＋ {{ config.add_label }}</a>
+    </div>
+  </div>
+
+  <section class="management-stats" aria-label="{{ config.label }} statistics" style="grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 24px;">
+    <article class="management-stat"><span>Matching items</span><strong>{{ total_count }}</strong><small>With the current filters</small></article>
+    <article class="management-stat"><span>Page</span><strong>{{ page_obj.number }}</strong><small>of {{ page_obj.paginator.num_pages }}</small></article>
+    <article class="management-stat"><span>Shown here</span><strong>{{ page_obj.object_list|length }}</strong><small>This page</small></article>
+  </section>
+
+  <form class="management-filter-bar" method="get" role="search">
+    <label class="management-filter-field management-filter-grow">
+      <span>Search</span>
+      <input class="management-input" type="search" name="q" value="{{ query }}" placeholder="Title, description or related exam">
+    </label>
+    <label class="management-filter-field">
+      <span>Status</span>
+      <select class="management-input" name="status">
+        <option value=""{% if not status %} selected{% endif %}>Any status</option>
+        {% for value, label in status_choices %}
+          <option value="{{ value }}"{% if status == value %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <div class="management-filter-actions">
+      <button class="management-button management-button-primary" type="submit">Apply</button>
+      {% if query or status %}<a class="management-button management-button-quiet" href="{% url 'site_management:resource_list' section %}">Clear</a>{% endif %}
+    </div>
+  </form>
+
+  {% if page_obj.object_list %}
+    <div class="management-section-card management-table-card">
+      <table class="management-table">
+        <caption class="management-visually-hidden">{{ config.label }} entries</caption>
+        <thead>
+          <tr>
+            <th scope="col">{{ config.label }}</th>
+            <th scope="col">Related exam</th>
+            <th scope="col">Published</th>
+            <th scope="col">Status</th>
+            <th scope="col"><span class="management-visually-hidden">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in page_obj %}
+            <tr>
+              <th scope="row">
+                <span class="management-table-username">
+                  <a href="{% url 'site_management:resource_detail' section item.pk %}">{{ item.title }}</a>
+                </span>
+                {% if item.description %}<small>{{ item.description|truncatechars:80 }}</small>{% endif %}
+              </th>
+              <td>{% if item.exam %}{{ item.exam.title }}{% else %}—{% endif %}</td>
+              <td>
+                {% if item.published_date %}
+                  <time datetime="{{ item.published_date|date:'c' }}">{{ item.published_date|date:"M j, Y" }}</time>
+                {% else %}
+                  <span class="management-muted">Immediately</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if item.is_published %}
+                  <span class="management-status is-active">Published</span>
+                {% elif item.status == "published" %}
+                  <span class="management-status is-inactive">Scheduled</span>
+                {% else %}
+                  <span class="management-status is-inactive">Draft</span>
+                {% endif %}
+              </td>
+              <td class="management-table-action">
+                <a class="management-button management-button-secondary management-button-small" href="{% url 'site_management:resource_detail' section item.pk %}">View</a>
+                <a class="management-button management-button-secondary management-button-small" href="{% url 'site_management:resource_edit' section item.pk %}">Edit</a>
+                <form method="post" action="{% url 'site_management:resource_toggle' section item.pk %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button class="management-button management-button-small management-button-secondary" type="submit">{% if item.status == "published" %}Unpublish{% else %}Publish{% endif %}</button>
+                </form>
+                <a class="management-button management-button-small management-button-danger" href="{% url 'site_management:resource_delete' section item.pk %}">Delete</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+      <nav class="management-pagination" aria-label="{{ config.label }} pages">
+        {% if page_obj.has_previous %}
+          <a class="management-button management-button-secondary" href="?q={{ query|urlencode }}&amp;status={{ status|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a class="management-button management-button-secondary" href="?q={{ query|urlencode }}&amp;status={{ status|urlencode }}&amp;page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    <p class="management-empty management-empty-large">No {{ config.label|lower }} entries{% if query %} match “{{ query }}”{% endif %}. Use “＋ {{ config.add_label }}” to add one.</p>
+  {% endif %}
+{% endblock %}

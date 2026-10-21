@@ -1,0 +1,125 @@
+{% extends "site_management/base.html" %}
+
+{% block title %}{{ account.username }}{% endblock %}
+
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <a class="management-back-link" href="{% url 'site_management:user_list' %}">← Back to all users</a>
+      <span class="management-eyebrow">ACCOUNT DETAILS</span>
+      <h1>{{ account.username }}</h1>
+      <p>{{ account.full_name|default:account.username }} · joined {{ account.date_joined|date:"M j, Y" }}</p>
+    </div>
+  </div>
+
+  <section class="management-section-card management-user-summary" aria-label="Account summary">
+    <dl class="management-detail-list">
+      <div>
+        <dt>Username</dt>
+        <dd>{{ account.username }}</dd>
+      </div>
+      <div>
+        <dt>Full name</dt>
+        <dd>{{ account.full_name|default:"Not set" }}</dd>
+      </div>
+      <div>
+        <dt>Email</dt>
+        <dd>{{ account.email }}</dd>
+      </div>
+      <div>
+        <dt>Account status</dt>
+        <dd>
+          {% if account.is_active %}
+            <span class="management-status is-active">Active</span>
+          {% else %}
+            <span class="management-status is-inactive">Inactive</span>
+          {% endif %}
+        </dd>
+      </div>
+      <div>
+        <dt>Staff status</dt>
+        <dd>
+          {% if account.is_superuser %}
+            <span class="management-status is-staff">Superuser</span>
+          {% elif account.is_staff %}
+            <span class="management-status is-staff">Staff</span>
+          {% else %}
+            <span class="management-status is-neutral">Member</span>
+          {% endif %}
+        </dd>
+      </div>
+      <div>
+        <dt>Date joined</dt>
+        <dd><time datetime="{{ account.date_joined|date:'c' }}">{{ account.date_joined|date:"M j, Y, g:i A" }}</time></dd>
+      </div>
+      <div>
+        <dt>Last sign-in</dt>
+        <dd>{% if account.last_login %}<time datetime="{{ account.last_login|date:'c' }}">{{ account.last_login|date:"M j, Y, g:i A" }}</time>{% else %}Never signed in{% endif %}</dd>
+      </div>
+    </dl>
+  </section>
+
+  {% if can_manage %}
+    <form class="management-form-card" method="post" action="{% url 'site_management:user_detail' account.pk %}">
+      {% csrf_token %}
+      <h2 class="management-form-heading">Editable details</h2>
+      <p class="management-form-note">Only the display name, email address, and eligibility profile details can be edited here. Passwords are never shown or set from this screen.</p>
+
+      {% if form.non_field_errors %}
+        <div class="management-form-errors">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="management-form-grid">
+        {% for field in form %}
+          <div class="management-field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<p class="management-field-help">{{ field.help_text }}</p>{% endif %}
+            {% for error in field.errors %}<p class="management-error">{{ error }}</p>{% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="management-form-footer">
+        <button class="management-button management-button-primary" type="submit">Save changes</button>
+      </div>
+    </form>
+  {% endif %}
+
+  {% if can_change_access %}
+    <section class="management-form-card">
+      <h2 class="management-form-heading">Sign-in &amp; staff access</h2>
+      <p class="management-form-note">Changes take effect immediately and require confirmation.</p>
+
+      <div class="management-access-actions">
+        {% if account.is_active %}
+          <form method="post" action="{% url 'site_management:user_action' account.pk 'deactivate' %}" onsubmit="return confirm('Deactivate {{ account.username }}? They will not be able to sign in until reactivated.');">
+            {% csrf_token %}
+            <button class="management-button management-button-danger" type="submit">Deactivate account</button>
+          </form>
+        {% else %}
+          <form method="post" action="{% url 'site_management:user_action' account.pk 'activate' %}">
+            {% csrf_token %}
+            <button class="management-button management-button-primary" type="submit">Activate account</button>
+          </form>
+        {% endif %}
+
+        {% if account.is_staff %}
+          <form method="post" action="{% url 'site_management:user_action' account.pk 'revoke-staff' %}" onsubmit="return confirm('Remove staff access for {{ account.username }}?');">
+            {% csrf_token %}
+            <button class="management-button management-button-danger" type="submit">Remove staff access</button>
+          </form>
+        {% else %}
+          <form method="post" action="{% url 'site_management:user_action' account.pk 'grant-staff' %}" onsubmit="return confirm('Give {{ account.username }} staff access to this workspace?');">
+            {% csrf_token %}
+            <button class="management-button management-button-quiet" type="submit">Give staff access</button>
+          </form>
+        {% endif %}
+      </div>
+    </section>
+  {% elif is_self %}
+    <p class="management-empty management-empty-large">You cannot change your own sign-in or staff access from here.</p>
+  {% else %}
+    <p class="management-empty management-empty-large">Only a superuser can manage another superuser account.</p>
+  {% endif %}
+{% endblock %}

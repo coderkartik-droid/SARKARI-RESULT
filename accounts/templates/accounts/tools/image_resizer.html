@@ -1,0 +1,109 @@
+{% extends "accounts/base_public.html" %}
+{% load static %}
+{% block title %}Image Resizer &middot; Photo Tools &middot; {{ website_settings.site_name }}{% endblock %}
+{% block meta_description %}<meta name="description" content="Resize JPG, PNG or WebP images to exact pixel dimensions right in your browser. Free, private and fast.">{% endblock %}
+
+{% block content %}
+<section class="portal-content-section tool-page" aria-labelledby="tool-title">
+  <nav class="tool-breadcrumb" aria-label="Breadcrumb">
+    <a href="{% url 'tools' %}">Tools</a> <span aria-hidden="true">/</span> <span>Image Resizer</span>
+  </nav>
+
+  <div class="portal-section-heading">
+    <div>
+      <p class="portal-section-kicker">Photo tool</p>
+      <h1 id="tool-title">Image Resizer</h1>
+      <p>Upload a photo, set the width and height, and download a resized copy. Processing happens entirely in your browser.</p>
+    </div>
+  </div>
+
+  <p id="resizer-error" class="tool-error" role="alert" hidden></p>
+
+  <div class="tool-card">
+    <div class="tool-field">
+      <label for="resizer-file">Choose an image (JPG, JPEG, PNG or WebP)</label>
+      <input type="file" id="resizer-file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp">
+    </div>
+
+    <div id="resizer-empty" class="tool-empty">No image selected yet. Choose a file above to begin.</div>
+
+    <div id="resizer-workspace" hidden>
+      <div class="tool-layout">
+        <div>
+          <h2 class="tool-subtitle">Source image</h2>
+          <div class="tool-preview">
+            <img id="resizer-source" alt="Selected image preview">
+          </div>
+          <dl class="tool-meta">
+            <div><dt>Original size</dt><dd id="resizer-orig-dims">—</dd></div>
+            <div><dt>File size</dt><dd id="resizer-orig-size">—</dd></div>
+          </dl>
+        </div>
+
+        <div>
+          <h2 class="tool-subtitle">Output settings</h2>
+          <div class="tool-row">
+            <div class="tool-field">
+              <label for="resizer-width">Width (px)</label>
+              <input type="number" id="resizer-width" min="1" max="10000" step="1" inputmode="numeric">
+            </div>
+            <div class="tool-field">
+              <label for="resizer-height">Height (px)</label>
+              <input type="number" id="resizer-height" min="1" max="10000" step="1" inputmode="numeric">
+            </div>
+          </div>
+
+          <div class="tool-field">
+            <label class="tool-checkbox" for="resizer-lock">
+              <input type="checkbox" id="resizer-lock" checked>
+              Maintain aspect ratio
+            </label>
+          </div>
+
+          <div class="tool-field">
+            <label for="resizer-format">Output format</label>
+            <select id="resizer-format">
+              <option value="image/png">PNG</option>
+              <option value="image/jpeg">JPEG</option>
+              <option value="image/webp">WebP</option>
+            </select>
+          </div>
+
+          <p class="tool-note">Expected output: <strong id="resizer-expected">—</strong></p>
+
+          <div class="tool-actions">
+            <button type="button" class="tool-btn tool-btn--primary" id="resizer-run">Resize Image</button>
+            <button type="button" class="tool-btn tool-btn--ghost" id="resizer-reset">Reset</button>
+            <button type="button" class="tool-btn tool-btn--ghost" id="resizer-remove">Remove Image</button>
+          </div>
+          <p class="tool-status" id="resizer-status" role="status" aria-live="polite" hidden></p>
+        </div>
+      </div>
+
+      <div id="resizer-output" hidden>
+        <h2 class="tool-subtitle">Resized image</h2>
+        <div class="tool-layout">
+          <div class="tool-preview">
+            <img id="resizer-preview" alt="Resized image preview">
+          </div>
+          <div>
+            <dl class="tool-meta">
+              <div><dt>Output size</dt><dd id="resizer-out-dims">—</dd></div>
+              <div><dt>File size</dt><dd id="resizer-out-size">—</dd></div>
+            </dl>
+            <div class="tool-actions">
+              <a class="tool-btn tool-btn--primary" id="resizer-download" href="#" download>Download image</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="tool-note">Your photos are processed locally and are never uploaded or stored on our servers.</p>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'accounts/tool_image_resizer.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "site_management/base.html" %}
+
+{% block title %}Website Pages{% endblock %}
+
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <span class="management-eyebrow">PUBLIC INFORMATION</span>
+      <h1>Website Pages</h1>
+      <p>Edit supported public pages. Draft pages stay unavailable to visitors; each card lists its exact route.</p>
+    </div>
+    {% if missing_page_types %}
+      <a class="management-button management-button-primary" href="{% url 'site_management:website_page_create' %}">＋ Add supported page</a>
+    {% endif %}
+  </div>
+
+  <div class="management-grid">
+    {% for page in pages %}
+      <div class="management-card">
+        <div class="management-card-header">
+          <h2>{{ page.title }}</h2>
+          <span class="management-badge {% if page.is_published %}management-badge--published{% else %}management-badge--draft{% endif %}">
+            {% if page.is_published %}Published{% else %}Draft{% endif %}
+          </span>
+        </div>
+        <div class="management-card-body">
+          <p class="management-card-description">{{ page.description|truncatewords:15 }}</p>
+          <p class="management-card-meta">Public route: <a class="management-url-link" href="{{ page.public_url }}" target="_blank" rel="noopener noreferrer"><code>{{ page.public_url }}</code><span aria-hidden="true">🔗</span></a></p>
+          <p class="management-card-meta">
+            Last updated: {{ page.updated_at|date:"M j, Y, g:i A" }}
+          </p>
+        </div>
+        <div class="management-card-actions">
+          <a class="management-button" href="{% url 'site_management:website_page_edit' page.id %}">Edit page</a>
+          {% if page.is_published %}
+            <a class="management-button management-button-quiet" href="{{ page.public_url }}" target="_blank" rel="noopener noreferrer">View page ↗</a>
+          {% else %}
+            <span class="management-button management-button-quiet" aria-disabled="true">Draft · unavailable publicly</span>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <p class="management-empty">No website pages found.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

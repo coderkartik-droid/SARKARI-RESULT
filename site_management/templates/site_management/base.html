@@ -1,0 +1,100 @@
+{% load static %}
+{% load management_extras %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block title %}Website management{% endblock %} · Site Management</title>
+    <script src="{% static 'site_management/management_icon_picker.js' %}" defer></script>
+    <script src="{% static 'site_management/management_link_test.js' %}" defer></script>
+    <script src="{% static 'site_management/management_sidebar.js' %}" defer></script>
+    <link rel="stylesheet" href="{% static 'site_management/management_icon_picker.css' %}">
+    <link rel="stylesheet" href="{% static 'site_management/management.css' %}">
+  </head>
+  <body class="management-body">
+    <header class="management-topbar">
+      <div class="management-topbar-left">
+        {% if request.user.is_authenticated %}
+          <button class="management-menu-button" type="button" id="management-menu-button" aria-controls="management-sidebar" aria-expanded="false">
+            <span class="management-menu-bars" aria-hidden="true"></span>
+            <span class="management-menu-text">Menu</span>
+          </button>
+        {% endif %}
+        <a class="management-brand" href="{% url 'site_management:dashboard' %}">
+          <span class="management-brand-mark" aria-hidden="true">SM</span>
+          <span><strong>Site Management</strong><small>Website management dashboard</small></span>
+        </a>
+      </div>
+      <div class="management-top-actions">
+        {% if request.user.is_superuser %}
+          <a class="management-public-link" href="{% url 'admin:index' %}" target="_blank" rel="noopener noreferrer">Django Admin ↗</a>
+        {% endif %}
+        <a class="management-public-link" href="{% url 'home' %}" target="_blank" rel="noopener noreferrer">View website ↗</a>
+        {% if request.user.is_authenticated %}
+          <span class="management-user">{{ request.user.username }}</span>
+          <form method="post" action="{% url 'site_management:logout' %}">
+            {% csrf_token %}
+            <button class="management-button management-button-quiet" type="submit">Sign out</button>
+          </form>
+        {% endif %}
+      </div>
+    </header>
+    {% if request.user.is_authenticated %}
+      <div class="management-layout">
+        <div class="management-sidebar-overlay" id="management-sidebar-overlay" hidden></div>
+        <aside class="management-sidebar" id="management-sidebar" aria-label="Website management sections">
+          <div class="management-sidebar-head">
+            <span class="management-sidebar-title">Manage website</span>
+            <button class="management-sidebar-close" type="button" id="management-sidebar-close" aria-label="Close menu">×</button>
+          </div>
+          {% management_nav as nav_sections %}
+          {% for section in nav_sections %}
+            <div class="management-nav-group{% if section.active %} is-expanded{% endif %}">
+              <div class="management-nav-row">
+                {% if section.has_submenu %}
+                  <button class="management-nav-link{% if section.active %} is-current{% endif %}" type="button" aria-controls="management-submenu-{{ section.key }}" aria-expanded="{% if section.active %}true{% else %}false{% endif %}" aria-label="Toggle {{ section.label }} menu" data-nav-toggle="true">
+                    <span class="management-nav-icon">{{ section.icon }}</span>
+                    <span class="management-nav-text">{{ section.label }}</span>
+                    {% if section.badge %}<span class="management-nav-badge">{{ section.badge }}</span>{% endif %}
+                    <svg class="management-nav-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6"/></svg>
+                  </button>
+                {% else %}
+                  <a class="management-nav-link{% if section.active %} is-current{% endif %}" href="{{ section.url }}"{% if section.external %} target="_blank" rel="noopener noreferrer"{% endif %}{% if section.active %} aria-current="page"{% endif %}>
+                    <span class="management-nav-icon">{{ section.icon }}</span>
+                    <span class="management-nav-text">{{ section.label }}</span>
+                    {% if section.badge %}<span class="management-nav-badge">{{ section.badge }}</span>{% endif %}
+                  </a>
+                {% endif %}
+              </div>
+              {% if section.has_submenu %}
+                <div class="management-submenu" id="management-submenu-{{ section.key }}"{% if not section.active %} hidden{% endif %}>
+                  {% for group in section.groups %}
+                    {% if group.label %}<span class="management-submenu-label">{{ group.label }}</span>{% endif %}
+                    {% for item in group.items %}
+                      <a class="management-submenu-link{% if item.active %} is-current{% endif %}" href="{{ item.url }}" title="{{ item.label }}"{% if item.external %} target="_blank" rel="noopener noreferrer"{% endif %}{% if item.active %} aria-current="page"{% endif %}>
+                        <span>{{ item.label }}{% if item.external %} ↗{% endif %}</span>
+                        {% if item.badge %}<span class="management-nav-badge">{{ item.badge }}</span>{% endif %}
+                      </a>
+                    {% endfor %}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </aside>
+        <main class="management-main">
+          {% if messages %}
+            <div class="management-messages" role="status" aria-live="polite">
+              {% for message in messages %}<p class="management-message management-message-{{ message.tags }}">{{ message }}</p>{% endfor %}
+            </div>
+          {% endif %}
+          {% block content %}{% endblock %}
+        </main>
+      </div>
+    {% else %}
+      <main class="management-auth-main">{% block auth_content %}{% endblock %}</main>
+    {% endif %}
+  </body>
+</html>

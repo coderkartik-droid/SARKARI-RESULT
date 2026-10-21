@@ -1,0 +1,113 @@
+{% load static %}
+<aside class="ai-widget-wrapper" id="ai-assistant-widget" aria-label="AI Assistant">
+  <button
+    id="ai-widget-toggle"
+    class="ai-widget-toggle-btn"
+    type="button"
+    aria-expanded="false"
+    aria-controls="ai-chat-panel"
+    aria-label="Open AI Assistant"
+  >
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+    <span>AI Assistant</span>
+  </button>
+
+  <section
+    id="ai-chat-panel"
+    class="ai-chat-panel"
+    role="dialog"
+    aria-labelledby="ai-chat-title"
+    aria-modal="false"
+    hidden
+  >
+    <header class="ai-chat-header">
+      <span class="ai-header-mark" aria-hidden="true">AI</span>
+      <div class="ai-header-copy">
+        <h1 id="ai-chat-title">AI Assistant</h1>
+        <span class="ai-status-text" id="ai-status-text" aria-live="polite">Loading assistant…</span>
+      </div>
+      <div class="ai-header-actions">
+        <button type="button" class="ai-icon-btn" id="ai-reset-btn" aria-label="Start a new conversation" title="New conversation">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="ai-icon-btn"
+          id="ai-minimize-btn"
+          aria-label="Close AI Assistant"
+          title="Close"
+        >
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="m18 6-12 12M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <nav class="ai-mode-tabs" aria-label="Assistant mode">
+      <button type="button" class="ai-mode-tab is-active" id="ai-tab-chat" aria-pressed="true">Chat</button>
+      <button type="button" class="ai-mode-tab" id="ai-tab-search" aria-pressed="false">Verified jobs</button>
+    </nav>
+
+    <main class="ai-chat-main">
+      <div class="ai-empty-state" id="ai-empty-state">
+        <span class="ai-empty-mark" aria-hidden="true">AI</span>
+        <h2 id="ai-empty-title">How can I help you today?</h2>
+        <p id="ai-empty-description">Ask a question to start a conversation.</p>
+      </div>
+      <div
+        class="ai-messages-scroll"
+        id="ai-messages-container"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions text"
+        aria-atomic="false"
+        tabindex="0"
+      ></div>
+      <div class="ai-typing-indicator" id="ai-typing" hidden aria-live="polite">
+        <span class="ai-loading-dot" aria-hidden="true"></span>
+        <span id="ai-typing-label">Thinking</span>
+      </div>
+    </main>
+
+    <form class="ai-input-form" id="ai-chat-form" novalidate>
+      {% csrf_token %}
+      <div class="ai-composer">
+        <label for="ai-input-text" class="visually-hidden">Message AI Assistant</label>
+        <textarea
+          id="ai-input-text"
+          class="ai-input-field"
+          placeholder="Message AI Assistant..."
+          rows="1"
+          maxlength="1000"
+          autocomplete="off"
+        ></textarea>
+        <button
+          type="submit"
+          class="ai-send-btn"
+          id="ai-send-btn"
+          aria-label="Send message"
+          disabled
+        >
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 19V5M5 12l7-7 7 7"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="ai-model-row" id="ai-model-row">
+        <label for="ai-model-select" class="visually-hidden">AI model</label>
+        <span class="ai-model-caption" id="ai-model-caption">Model</span>
+        <select id="ai-model-select" name="model" aria-label="AI model" aria-describedby="ai-model-message" disabled>
+          <option value="">Loading available models…</option>
+        </select>
+        <span class="ai-model-state" id="ai-model-message" role="status" aria-live="polite"></span>
+        <button type="button" class="ai-retry-btn" id="ai-model-retry" hidden>Retry</button>
+      </div>
+    </form>
+  </section>
+</aside>

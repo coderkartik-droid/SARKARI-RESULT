@@ -1,0 +1,205 @@
+{% extends "accounts/base_public.html" %}
+{% block title %}{{ page.title }} &middot; {{ website_settings.site_name }}{% endblock %}
+{% block meta_description %}<meta name="description" content="{{ page.description|truncatewords:30 }}">{% endblock %}
+
+{% block content %}
+{% if page.page_type == 'contact_us' %}
+
+  {# ================================================================ #}
+  {# CONTACT US — dedicated redesigned layout                         #}
+  {# ================================================================ #}
+  <div class="contact-page">
+
+    {# ── Page header ─────────────────────────────────────────── #}
+    <header class="contact-page-header">
+      <p class="contact-eyebrow">
+        <span class="contact-eyebrow-dot" aria-hidden="true"></span>Get in touch
+      </p>
+      <h1 class="contact-page-title">Contact Us</h1>
+      <p class="contact-page-desc">Have a question, spotted an error in a job listing, or want to share a suggestion? We read every message and try to respond promptly.</p>
+    </header>
+
+    <div class="contact-layout">
+
+      {# ── Left column: info cards + note ─────────────────────── #}
+      <aside class="contact-info-col" aria-label="Contact information">
+
+        <div class="contact-info-card">
+          <span class="contact-info-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          </span>
+          <div>
+            <p class="contact-info-label">General Enquiries</p>
+            <p class="contact-info-desc">Questions about the website, account issues, or content availability.</p>
+            {% if page.contact_email %}
+              <a class="contact-info-link" href="mailto:{{ page.contact_email }}">{{ page.contact_email }}</a>
+            {% else %}
+              <p class="contact-info-hint">Use the form below to send us a message.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="contact-info-card">
+          <span class="contact-info-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M14 3v5h5M8 12h8M8 16h8"/></svg>
+          </span>
+          <div>
+            <p class="contact-info-label">Report Incorrect Information</p>
+            <p class="contact-info-desc">Found wrong dates, eligibility criteria, or exam details? Please report it so we can correct it quickly.</p>
+          </div>
+        </div>
+
+        <div class="contact-info-card">
+          <span class="contact-info-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </span>
+          <div>
+            <p class="contact-info-label">Suggestions &amp; Feedback</p>
+            <p class="contact-info-desc">Ideas to improve the portal, missing categories, or feature requests are always welcome.</p>
+          </div>
+        </div>
+
+        {% if page.contact_phone or page.contact_address or page.contact_hours %}
+          <div class="contact-info-card contact-info-card--details">
+            {% if page.contact_phone %}
+              <p><strong>Phone:</strong> <a href="tel:{{ page.contact_phone|cut:' ' }}">{{ page.contact_phone }}</a></p>
+            {% endif %}
+            {% if page.contact_address %}
+              <p><strong>Address:</strong> {{ page.contact_address|linebreaksbr }}</p>
+            {% endif %}
+            {% if page.contact_hours %}
+              <p><strong>Office hours:</strong> {{ page.contact_hours }}</p>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        <div class="contact-note" role="note">
+          <span class="contact-note-icon" aria-hidden="true">i</span>
+          <p>When reporting incorrect recruitment information, please include the job title, organization name, and the specific detail that needs correction. This helps us verify and fix it faster.</p>
+        </div>
+
+      </aside>
+
+      {# ── Right column: contact form ──────────────────────────── #}
+      <section class="contact-form-col" aria-labelledby="contact-form-heading">
+        <div class="contact-form-card">
+          <h2 id="contact-form-heading" class="contact-form-title">Send us a message</h2>
+          <p class="contact-form-sub">Your message will be reviewed by our team. We aim to respond within 1–3 working days.</p>
+
+          {% if messages %}
+            <div class="contact-feedback" role="status" aria-live="polite">
+              {% for message in messages %}
+                <p class="contact-feedback-msg contact-feedback-msg--{{ message.tags }}">{{ message }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if contact_form %}
+            <form method="post" action="{% url 'contact_us' %}" class="contact-form" novalidate>
+              {% csrf_token %}
+
+              {# Honeypot — hidden from real users #}
+              {% for field in contact_form %}
+                {% if field.name == 'website' %}
+                  <div class="portal-honeypot" aria-hidden="true">
+                    {{ field.label_tag }}{{ field }}
+                  </div>
+                {% endif %}
+              {% endfor %}
+
+              <div class="contact-form-row">
+                <div class="contact-field{% if contact_form.name.errors %} contact-field--error{% endif %}">
+                  <label for="{{ contact_form.name.id_for_label }}">Full Name <span class="contact-required" aria-hidden="true">*</span></label>
+                  {{ contact_form.name }}
+                  {% if contact_form.name.errors %}
+                    <p class="contact-error" role="alert">{{ contact_form.name.errors.0 }}</p>
+                  {% endif %}
+                </div>
+
+                <div class="contact-field{% if contact_form.phone_number.errors %} contact-field--error{% endif %}">
+                  <label for="{{ contact_form.phone_number.id_for_label }}">Phone Number <span class="contact-required" aria-hidden="true">*</span></label>
+                  {{ contact_form.phone_number }}
+                  {% if contact_form.phone_number.errors %}
+                    <p class="contact-error" role="alert">{{ contact_form.phone_number.errors.0 }}</p>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="contact-field{% if contact_form.email.errors %} contact-field--error{% endif %}">
+                <label for="{{ contact_form.email.id_for_label }}">Email Address <span class="contact-required" aria-hidden="true">*</span></label>
+                {{ contact_form.email }}
+                {% if contact_form.email.errors %}
+                  <p class="contact-error" role="alert">{{ contact_form.email.errors.0 }}</p>
+                {% endif %}
+              </div>
+
+              <div class="contact-field{% if contact_form.subject.errors %} contact-field--error{% endif %}">
+                <label for="{{ contact_form.subject.id_for_label }}">Subject <span class="contact-required" aria-hidden="true">*</span></label>
+                {{ contact_form.subject }}
+                {% if contact_form.subject.errors %}
+                  <p class="contact-error" role="alert">{{ contact_form.subject.errors.0 }}</p>
+                {% endif %}
+              </div>
+
+              <div class="contact-field{% if contact_form.message.errors %} contact-field--error{% endif %}">
+                <label for="{{ contact_form.message.id_for_label }}">Message <span class="contact-required" aria-hidden="true">*</span></label>
+                {{ contact_form.message }}
+                {% if contact_form.message.errors %}
+                  <p class="contact-error" role="alert">{{ contact_form.message.errors.0 }}</p>
+                {% endif %}
+              </div>
+
+              {% if contact_form.non_field_errors %}
+                {% for error in contact_form.non_field_errors %}
+                  <p class="contact-error" role="alert">{{ error }}</p>
+                {% endfor %}
+              {% endif %}
+
+              <div class="contact-form-footer">
+                <p class="contact-privacy-note">Messages are stored securely and reviewed by staff. We do not share your details with third parties.</p>
+                <button type="submit" class="contact-submit-btn">Send message <span aria-hidden="true">→</span></button>
+              </div>
+            </form>
+          {% endif %}
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+{% else %}
+
+  {# ================================================================ #}
+  {# GENERIC PAGE — About Us, Privacy Policy, Content Details, etc.  #}
+  {# ================================================================ #}
+  <section class="portal-hero" aria-labelledby="page-title">
+    <div class="portal-hero-copy">
+      <p class="portal-eyebrow"><span></span> {{ website_settings.header_text }}</p>
+      <h1 id="page-title"><span>{{ page.title }}</span></h1>
+      {% if page.subtitle %}<p class="portal-hero-description">{{ page.subtitle }}</p>{% endif %}
+    </div>
+  </section>
+
+  <section class="portal-content-section" aria-label="Page content">
+    <div class="portal-page-content">
+      {% if page.image %}
+        <div class="portal-page-image-wrapper">
+          <img class="portal-page-image" src="{{ page.image.url }}" alt="{{ page.image_alt|default:page.title }}" loading="lazy">
+          {% if page.image_caption %}<p class="portal-page-image-caption">{{ page.image_caption }}</p>{% endif %}
+        </div>
+      {% endif %}
+      <div class="portal-page-description">
+        {% if page.description %}
+          {{ page.description|linebreaksbr }}
+        {% else %}
+          <p role="status">Content for this page is not available right now.</p>
+        {% endif %}
+      </div>
+      {% if page.link_url and page.link_text %}
+        <a class="portal-cms-button" href="{{ page.link_url }}" {% if page.link_url|slice:":4" == "http" %}target="_blank" rel="noopener noreferrer"{% endif %}>{{ page.link_text }}</a>
+      {% endif %}
+    </div>
+  </section>
+
+{% endif %}
+{% endblock %}

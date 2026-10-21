@@ -1,0 +1,76 @@
+from django.urls import path
+
+from . import views
+
+
+app_name = "site_management"
+
+urlpatterns = [
+    path("login/", views.ManagementLoginView.as_view(), name="login"),
+    path("logout/", views.management_logout, name="logout"),
+    path("", views.dashboard, name="dashboard"),
+    path("content/<slug:area>/", views.area_manager, name="area_manager"),
+    path("settings/", views.settings_edit, name="settings"),
+    path("sections/new/", views.section_create, name="section_create"),
+    path("sections/<int:section_id>/edit/", views.section_edit, name="section_edit"),
+    path("sections/<int:section_id>/delete/", views.section_delete, name="section_delete"),
+    path(
+        "sections/<int:section_id>/items/new/",
+        views.item_create,
+        name="item_create",
+    ),
+    path("items/<int:item_id>/edit/", views.item_edit, name="item_edit"),
+    path("items/<int:item_id>/delete/", views.item_delete, name="item_delete"),
+    path("website-pages/", views.website_pages_list, name="website_pages"),
+    path("website-pages/new/", views.website_page_create, name="website_page_create"),
+    path("website-pages/<int:page_id>/edit/", views.website_page_edit, name="website_page_edit"),
+    path("links/", views.content_links, name="content_links"),
+    path("links/new/", views.content_link_create, name="content_link_create"),
+    path("links/<int:link_id>/edit/", views.content_link_edit, name="content_link_edit"),
+    path("links/<int:link_id>/delete/", views.content_link_delete, name="content_link_delete"),
+    path("exams/", views.exams, name="exams"),
+    path("exams/upcoming/", views.upcoming_exams, name="upcoming_exams"),
+    path("exams/recent/", views.recent_exams, name="recent_exams"),
+    path("exams/new/", views.exam_create, name="exam_create"),
+    path("exams/<int:exam_id>/edit/", views.exam_edit, name="exam_edit"),
+    path("exams/<int:exam_id>/delete/", views.exam_delete, name="exam_delete"),
+    path("exams/<int:exam_id>/pdfs/", views.exam_pdfs, name="exam_pdfs"),
+    path("exams/<int:exam_id>/pdfs/new/", views.exam_pdf_create, name="exam_pdf_create"),
+    path("exams/pdfs/<int:pdf_id>/edit/", views.exam_pdf_edit, name="exam_pdf_edit"),
+    path("exams/pdfs/<int:pdf_id>/delete/", views.exam_pdf_delete, name="exam_pdf_delete"),
+    path("resources/<slug:section>/", views.resource_list, name="resource_list"),
+    path("resources/<slug:section>/new/", views.resource_create, name="resource_create"),
+    path(
+        "resources/<slug:section>/<int:pk>/",
+        views.resource_detail,
+        name="resource_detail",
+    ),
+    path(
+        "resources/<slug:section>/<int:pk>/edit/",
+        views.resource_edit,
+        name="resource_edit",
+    ),
+    path(
+        "resources/<slug:section>/<int:pk>/delete/",
+        views.resource_delete,
+        name="resource_delete",
+    ),
+    path(
+        "resources/<slug:section>/<int:pk>/toggle/",
+        views.resource_toggle,
+        name="resource_toggle",
+    ),
+    path("social-profiles/", views.social_profiles, name="social_profiles"),
+    path("social-profiles/new/", views.social_profile_create, name="social_profile_create"),
+    path("social-profiles/<int:profile_id>/edit/", views.social_profile_edit, name="social_profile_edit"),
+    path("social-profiles/<int:profile_id>/delete/", views.social_profile_delete, name="social_profile_delete"),
+    path("messages/", views.contact_messages, name="contact_messages"),
+    path("messages/<int:message_id>/", views.contact_message_detail, name="contact_message_detail"),
+    path("comments/", views.comment_moderation, name="comment_moderation"),
+    path("comments/<int:comment_id>/<str:action>/", views.comment_action, name="comment_action"),
+    path("ai-status/", views.ai_status, name="ai_status"),
+    path("users/", views.user_list, name="user_list"),
+    path("users/<int:user_id>/", views.user_detail, name="user_detail"),
+    path("users/<int:user_id>/<str:action>/", views.user_action, name="user_action"),
+    path("sections/<slug:section>/", views.section_overview, name="section_overview"),
+]

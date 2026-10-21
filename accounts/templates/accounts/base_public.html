@@ -1,0 +1,203 @@
+{% load static %}
+{% load navigation_extras %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fa">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    {% block meta_description %}{% endblock %}
+    <title>{% block title %}{{ website_settings.site_name }}{% endblock %}</title>
+    {% if website_settings.favicon_url %}<link rel="icon" href="{{ website_settings.favicon_url }}">{% endif %}
+    <link rel="stylesheet" href="{% static 'accounts/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'accounts/portal.css' %}">
+    <link rel="stylesheet" href="{% static 'accounts/public.css' %}">
+    <link rel="stylesheet" href="{% static 'ai_assistant/chat_widget.css' %}">
+    <script src="{% static 'accounts/portal.js' %}" defer></script>
+    <script src="{% static 'ai_assistant/chat_widget.js' %}" defer></script>
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body class="portal-page public-site{% block body_class %}{% endblock %}">
+    <header class="portal-header public-header">
+      <div class="portal-header-main">
+        <a class="portal-brand" href="{% url 'home' %}" aria-label="{{ website_settings.site_name }} home">
+          {% if website_settings.logo_url %}<img class="portal-brand-image" src="{{ website_settings.logo_url }}" alt="">{% else %}<span class="portal-brand-mark" aria-hidden="true">{{ website_settings.logo_text }}</span>{% endif %}
+          <span class="portal-brand-copy">
+            <span class="portal-brand-name">{{ website_settings.site_name }}</span>
+            <span class="portal-brand-tagline">{{ website_settings.tagline }}</span>
+          </span>
+        </a>
+        <div class="portal-header-actions">
+          <button class="portal-mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu-panel">
+            <span class="portal-hamburger-icon"></span>
+          </button>
+          <a class="portal-eligibility-header-btn" href="{% url 'jobs:eligibility_check' %}">
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="badge-check" %}</span>
+            <span>Check Eligibility</span>
+          </a>
+          {% if request.user.is_authenticated %}
+            <span class="portal-user-label">Signed in as <strong>{{ request.user.username }}</strong></span>
+            <a class="portal-login-link portal-message-link portal-nav-comments-link" href="{% url 'contact_us' %}">
+              <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="messages-square" %}</span>
+              <span>Messages</span>
+            </a>
+            <form method="post" action="{% url 'accounts:logout' %}">
+              {% csrf_token %}
+              <button class="portal-logout-link" type="submit">Sign out</button>
+            </form>
+          {% else %}
+            <a class="portal-login-link" href="{% url 'accounts:login' %}">Log in</a>
+            <a class="portal-signup-link" href="{% url 'accounts:signup' %}">Create account</a>
+          {% endif %}
+          {% if header_social_profiles %}
+            <div class="portal-social-links" aria-label="Social media links">
+              {% for profile in header_social_profiles %}
+                {% if profile.profile_url %}
+                  <a class="portal-social-link" href="{{ profile.profile_url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ profile.accessible_label|default:profile.display_name }}" {% if profile.icon_style %}style="{{ profile.icon_style }}"{% endif %}>
+                    {% if profile.custom_icon_url %}
+                      <img src="{{ profile.custom_icon_url }}" alt="" loading="lazy">
+                    {% elif profile.built_in_icon or profile.platform %}
+                      {% include "accounts/includes/portal_icon.html" with icon=profile.built_in_icon|default:profile.platform %}
+                    {% else %}
+                      <span aria-hidden="true">{{ profile.display_name|slice:":1" }}</span>
+                    {% endif %}
+                  </a>
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      <nav
+        class="portal-menu"
+        id="public-navigation-menu"
+        aria-label="All site navigation"
+      >
+        <div class="portal-menu-links">
+          {% url 'home' as home_url %}
+          {% url 'tools' as tools_url %}
+          {% url 'accounts:results' as results_url %}
+          {% url 'accounts:answer_sheets' as answer_sheets_url %}
+          {% url 'accounts:registration_forms' as registration_forms_url %}
+          {% url 'accounts:previous_papers' as previous_papers_url %}
+          {% url 'accounts:exams' as exams_url %}
+          {% url 'accounts:upcoming_exams' as upcoming_exams_url %}
+          {% url 'accounts:recent_exams' as recent_exams_url %}
+          {% url 'contact_us' as contact_url %}
+          <a href="{{ home_url }}"{% if request.path == home_url %} aria-current="page"{% endif %}>
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="home" %}</span>
+            Home
+          </a>
+          <a href="{{ exams_url }}"{% if request.path == exams_url %} aria-current="page"{% endif %}>
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="graduation-cap" %}</span>
+            Exam
+          </a>
+          <a href="{{ upcoming_exams_url }}"{% if request.path == upcoming_exams_url %} aria-current="page"{% endif %}>
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="calendar" %}</span>
+            Upcoming Exam
+          </a>
+          <a href="{{ recent_exams_url }}"{% if request.path == recent_exams_url %} aria-current="page"{% endif %}>
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="clock" %}</span>
+            Recent Exam
+          </a>
+          <a href="{{ answer_sheets_url }}"{% if request.path == answer_sheets_url %} aria-current="page"{% endif %}>
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="file-search" %}</span>
+            Answer Sheet
+          </a>
+          <a href="{{ registration_forms_url }}"{% if request.path == registration_forms_url %} aria-current="page"{% endif %}>
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="contact" %}</span>
+            Registration Form
+          </a>
+          <a href="{{ previous_papers_url }}"{% if request.path == previous_papers_url %} aria-current="page"{% endif %}>
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="paper" %}</span>
+            Previous Paper
+          </a>
+          <a href="{{ results_url }}"{% if request.path == results_url %} aria-current="page"{% endif %}>
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="award" %}</span>
+            Result
+          </a>
+          <a href="{{ tools_url }}"{% if request.path == tools_url %} aria-current="page"{% endif %}>
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="tools" %}</span>
+            Tools
+          </a>
+          <a href="{{ contact_url }}"{% if request.path == contact_url %} aria-current="page"{% endif %}>
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="messages-square" %}</span>
+            Contact
+          </a>
+        </div>
+      </nav>
+      
+      <!-- Mobile Menu Panel -->
+      <div class="portal-mobile-menu-panel" id="mobile-menu-panel" hidden>
+        <nav class="portal-mobile-nav" aria-label="Mobile navigation">
+          {% url 'home' as home_url %}
+          {% url 'tools' as tools_url %}
+          {% url 'accounts:results' as results_url %}
+          {% url 'accounts:answer_sheets' as answer_sheets_url %}
+          {% url 'accounts:registration_forms' as registration_forms_url %}
+          {% url 'accounts:previous_papers' as previous_papers_url %}
+          {% url 'accounts:exams' as exams_url %}
+          {% url 'accounts:upcoming_exams' as upcoming_exams_url %}
+          {% url 'accounts:recent_exams' as recent_exams_url %}
+          {% url 'contact_us' as contact_url %}
+          <a href="{{ home_url }}" class="portal-mobile-nav-link">
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="home" %}</span>
+            Home
+          </a>
+          <a href="{{ exams_url }}" class="portal-mobile-nav-link">
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="graduation-cap" %}</span>
+            Exam
+          </a>
+          <a href="{{ upcoming_exams_url }}" class="portal-mobile-nav-link">
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="calendar" %}</span>
+            Upcoming Exam
+          </a>
+          <a href="{{ recent_exams_url }}" class="portal-mobile-nav-link">
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="clock" %}</span>
+            Recent Exam
+          </a>
+          <a href="{{ answer_sheets_url }}" class="portal-mobile-nav-link">
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="file-search" %}</span>
+            Answer Sheet
+          </a>
+          <a href="{{ registration_forms_url }}" class="portal-mobile-nav-link">
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="contact" %}</span>
+            Registration Form
+          </a>
+          <a href="{{ previous_papers_url }}" class="portal-mobile-nav-link">
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="paper" %}</span>
+            Previous Paper
+          </a>
+          <a href="{{ results_url }}" class="portal-mobile-nav-link">
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="award" %}</span>
+            Result
+          </a>
+          <a href="{{ tools_url }}" class="portal-mobile-nav-link">
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="tools" %}</span>
+            Tools
+          </a>
+          <a href="{{ contact_url }}" class="portal-mobile-nav-link">
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="messages-square" %}</span>
+            Contact
+          </a>
+          {% if request.user.is_authenticated %}
+            <a href="{% url 'accounts:dashboard' %}" class="portal-mobile-nav-link">
+              <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="user" %}</span>
+              My account
+            </a>
+          {% else %}
+            <a href="{% url 'accounts:login' %}" class="portal-mobile-nav-link">Log in</a>
+            <a href="{% url 'accounts:signup' %}" class="portal-mobile-nav-link">Create account</a>
+          {% endif %}
+        </nav>
+      </div>
+    </header>
+    <main id="main-content" class="public-main">
+      {% block content %}{% endblock %}
+    </main>
+    {% include "accounts/includes/public_footer.html" %}
+    {% block extra_scripts %}{% endblock %}
+    {% block assistant_widget %}{% include "ai_assistant/chat_widget.html" %}{% endblock %}
+  </body>
+</html>

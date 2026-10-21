@@ -1,0 +1,79 @@
+{% extends "accounts/base_public.html" %}
+{% load static %}
+{% block title %}JPG to PDF Converter &middot; Photo Tools &middot; {{ website_settings.site_name }}{% endblock %}
+{% block meta_description %}<meta name="description" content="Combine JPG images into a single PDF with A4 or Letter pages, portrait or landscape orientation. Free and done in your browser.">{% endblock %}
+
+{% block content %}
+<section class="portal-content-section tool-page" aria-labelledby="tool-title">
+  <nav class="tool-breadcrumb" aria-label="Breadcrumb">
+    <a href="{% url 'tools' %}">Tools</a> <span aria-hidden="true">/</span> <span>JPG to PDF Converter</span>
+  </nav>
+
+  <div class="portal-section-heading">
+    <div>
+      <p class="portal-section-kicker">Photo tool</p>
+      <h1 id="tool-title">JPG to PDF Converter</h1>
+      <p>Select one or more JPG images and combine them into a single PDF. Each image gets its own page, in the order you choose.</p>
+    </div>
+  </div>
+
+  <p id="pdf-error" class="tool-error" role="alert" hidden></p>
+
+  <div class="tool-card">
+    <div class="tool-field">
+      <label for="pdf-files">Choose JPG images (you can select several)</label>
+      <input type="file" id="pdf-files" accept="image/jpeg,.jpg,.jpeg" multiple>
+    </div>
+
+    <div id="pdf-empty" class="tool-empty">No images selected yet. Choose JPG files above to begin.</div>
+
+    <div id="pdf-workspace" hidden>
+      <h2 class="tool-subtitle">Selected images (<span id="pdf-count">0</span>)</h2>
+      <ul class="tool-thumbs" id="pdf-thumbs" aria-label="Selected images"></ul>
+
+      <div class="tool-layout">
+        <div class="tool-field">
+          <label for="pdf-page-size">Page size</label>
+          <select id="pdf-page-size">
+            <option value="a4">A4</option>
+            <option value="letter">Letter</option>
+          </select>
+        </div>
+        <div class="tool-field">
+          <label for="pdf-orientation">Orientation</label>
+          <select id="pdf-orientation">
+            <option value="portrait">Portrait</option>
+            <option value="landscape">Landscape</option>
+          </select>
+        </div>
+        <div class="tool-field">
+          <label for="pdf-fit">Image fit</label>
+          <select id="pdf-fit">
+            <option value="contain">Contain (keep proportions)</option>
+            <option value="cover">Cover (fill the page)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tool-actions">
+        <button type="button" class="tool-btn tool-btn--primary" id="pdf-convert">Convert to PDF</button>
+        <button type="button" class="tool-btn tool-btn--ghost" id="pdf-clear">Clear all</button>
+      </div>
+      <p class="tool-status" id="pdf-status" role="status" aria-live="polite" hidden></p>
+
+      <div id="pdf-output" hidden>
+        <div class="tool-actions">
+          <a class="tool-btn tool-btn--primary" id="pdf-download" href="#" download>Download PDF</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="tool-note">PDF generation runs in your browser. Your images are never uploaded or stored on our servers.</p>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="{% static 'accounts/tool_jpg_to_pdf.js' %}" defer></script>
+{% endblock %}

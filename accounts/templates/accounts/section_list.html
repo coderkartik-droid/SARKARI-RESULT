@@ -1,0 +1,64 @@
+{% extends "accounts/base_public.html" %}
+{% block title %}{{ section.title }} &middot; {{ website_settings.site_name }}{% endblock %}
+{% block content %}<section class="portal-list-content" aria-labelledby="listing-title">
+        <p class="portal-section-kicker">PUBLIC CONTENT</p>
+        <h1 id="listing-title">{{ section.title }}</h1>
+        {% if section.description %}<p class="portal-list-intro">{{ section.description }}</p>{% endif %}
+        <form class="portal-list-search" method="get" action="{% url 'accounts:section_list' section.slug %}" role="search">
+          <label class="visually-hidden" for="section-search">Search {{ section.title }}</label>
+          <input id="section-search" type="search" name="q" value="{{ query }}" placeholder="Search {{ section.title }}">
+          <button type="submit">Search</button>
+        </form>
+
+        {% if page_obj.object_list %}
+          <div class="portal-listing-grid portal-listing-grid-page">
+            {% for item in page_obj %}
+              <article class="portal-listing-card-wrap">
+              <a class="portal-listing-card portal-listing-card-page portal-card-main portal-full-card-link{% if item.block_classes %} {{ item.block_classes }}{% endif %}{% if not item.show_on_desktop %} portal-hidden-desktop{% endif %}{% if not item.show_on_tablet %} portal-hidden-tablet{% endif %}{% if not item.show_on_mobile %} portal-hidden-mobile{% endif %}" href="{% url 'accounts:section_item_detail' section.slug item.pk %}" aria-label="{{ item.accessible_label|default:item.label|default:item.short_description|default:item.body }}"{% if item.block_style %} style="{{ item.block_style }}"{% endif %}>
+                {% if item.image or item.thumbnail_image %}
+                  <span class="portal-content-image-box portal-image-position--{{ item.image_position|default:'top-left' }}{% if item.image_alignment %} portal-image-align--{{ item.image_alignment }}{% endif %} portal-image-size--{{ item.image_size|default:'small' }} portal-image-fit--{{ item.image_fit|default:'contain' }}">
+                    <img class="portal-content-image" src="{% if item.image %}{{ item.image.url }}{% else %}{{ item.thumbnail_image.url }}{% endif %}" alt="{{ item.image_alt }}" loading="lazy">
+                  </span>
+                {% endif %}
+                <div class="portal-card-copy">
+                {% if item.eyebrow_text or item.badge_text %}<div class="portal-card-labels">
+                  {% if item.eyebrow_text %}<span class="portal-card-eyebrow">{{ item.eyebrow_text }}</span>{% endif %}
+                  {% if item.badge_text %}<span class="portal-card-badge portal-badge--{{ item.badge_color|default:'blue' }}">{{ item.badge_text }}</span>{% endif %}
+                </div>{% endif %}
+                <div class="portal-listing-topline">
+                  <span class="portal-icon portal-listing-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon=item.icon|default:"info" %}</span>
+                  {% if item.published_at %}<time class="portal-status" datetime="{{ item.published_at|date:'Y-m-d' }}">Published {{ item.published_at|date:"M j, Y" }}</time>{% else %}<time class="portal-status" datetime="{{ item.created_at|date:'c' }}">Added {{ item.created_at|date:"M j, Y" }}</time>{% endif %}
+                </div>
+                {% if item.label %}<h2{% if item.title_style %} style="{{ item.title_style }}"{% endif %}>{{ item.label }}</h2>{% endif %}
+                {% if item.subtitle %}<p class="portal-card-subtitle"{% if item.subtitle_style %} style="{{ item.subtitle_style }}"{% endif %}>{{ item.subtitle }}</p>{% endif %}
+                {% if item.highlight_text %}<p class="portal-card-highlight">{{ item.highlight_text }}</p>{% endif %}
+                {% if item.short_description %}<p>{{ item.short_description }}</p>{% elif item.body %}<p>{{ item.body }}</p>{% endif %}
+                {% if item.image_caption or item.caption %}<span class="portal-image-caption">{{ item.image_caption|default:item.caption }}</span>{% endif %}
+                <span class="portal-list-detail-link">View details <span aria-hidden="true">→</span></span>
+                </div>
+              </a>
+              {% if item.pdf_file or item.visible_links %}
+                <div class="portal-card-extra-links" aria-label="Downloads and additional links for {{ item.label|default:section.title }}">
+                  {% if item.pdf_file %}
+                    <a class="portal-hand-link" href="{{ item.pdf_file.url }}" target="_blank" rel="noopener noreferrer">
+                      <span>Click here to download the PDF</span>
+                    </a>
+                  {% endif %}
+                  {% for link in item.visible_links %}
+                    <a class="portal-hand-link" href="{{ link.url }}" {% if link.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                      {% if link.icon_url %}<img class="portal-content-link-icon" src="{{ link.icon_url }}" alt="" loading="lazy" style="{{ link.icon_style }}">
+                      {% elif link.icon %}<span class="portal-content-link-icon portal-icon" style="{{ link.icon_style }}">{% include "accounts/includes/portal_icon.html" with icon=link.icon %}</span>{% endif %}
+                      <span>{{ link.label }}{% if link.description %}<small>{{ link.description }}</small>{% endif %}</span>
+                    </a>
+                  {% endfor %}
+                </div>
+              {% endif %}
+              </article>
+            {% endfor %}
+          </div>
+          {% include "accounts/includes/pagination.html" with page_obj=page_obj query=query %}
+        {% else %}
+          <p class="portal-list-empty" role="status">{% if query %}No {{ section.title|lower }} match “{{ query }}”.{% else %}There are no published items in this section yet.{% endif %}</p>
+        {% endif %}
+      </section>
+    {% endblock %}

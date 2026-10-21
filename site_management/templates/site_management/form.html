@@ -1,0 +1,211 @@
+{% extends "site_management/base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <a class="management-back-link" href="{{ back_url }}">← Back to workspace</a>
+      <span class="management-eyebrow">CONTENT EDITOR</span>
+      <h1>{{ page_title }}</h1>
+      <p>{{ form_description|default:"Text is rendered as text. Link destinations accept local paths or HTTP/HTTPS URLs." }}</p>
+    </div>
+    {% if public_url %}
+      <div class="management-heading-actions">
+        <a class="management-button management-public-link" href="{{ public_url }}" target="_blank" rel="noopener noreferrer">View on website ↗</a>
+      </div>
+    {% endif %}
+  </div>
+  <section class="management-form-card">
+    {% if form.non_field_errors %}<div class="management-form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    <form method="post" class="management-form" enctype="multipart/form-data">
+      {% csrf_token %}
+      {% if form.field_groups %}
+        {% for group_title, fields in form.field_groups %}
+          <details class="management-fieldset" {% if forloop.first or form.errors %}open{% endif %}>
+            <summary>{{ group_title }}</summary>
+            <div class="management-form-grid">
+              {% for field in fields %}
+                <div class="management-field {% if field.field.widget.input_type == 'checkbox' and not field.field.widget.allow_multiple_selected %}management-checkbox-field{% endif %}">
+                  {% if field.field.widget.input_type == 'checkbox' and not field.field.widget.allow_multiple_selected %}
+                    <label class="management-checkbox-label">{{ field }}<span><strong>{{ field.label }}</strong>{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}</span></label>
+                  {% else %}
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.name == "slug" %}
+                      <datalist id="management-section-slugs">
+                        {% for slug, label in form.slug_suggestions %}
+                          <option value="{{ slug }}" label="{{ label }}"></option>
+                        {% endfor %}
+                      </datalist>
+                    {% endif %}
+                    {% if field.name == "image" or field.name == "secondary_image" or field.name == "thumbnail_image" %}
+                      <div class="management-image-preview-box" id="box-{{ field.id_for_label }}">
+                        {% if field.value and field.value.url %}
+                          <span class="management-current-image">Current image:</span>
+                          <img class="management-image-preview" id="{% if 'website-page' in request.path and field.name == 'image' %}website-page-image-preview{% else %}img-{{ field.id_for_label }}{% endif %}" src="{{ field.value.url }}" alt="Current {{ field.label|lower }} preview">
+                        {% else %}
+                          <span class="management-current-image" id="label-{{ field.id_for_label }}" style="display:none;">Selected image preview:</span>
+                          <img class="management-image-preview" id="{% if 'website-page' in request.path and field.name == 'image' %}website-page-image-preview{% else %}img-{{ field.id_for_label }}{% endif %}" style="display:none;" alt="Selected {{ field.label|lower }} preview">
+                        {% endif %}
+                      </div>
+                    {% endif %}
+                    {% if field.help_text %}<small class="management-help">{{ field.help_text }}</small>{% endif %}
+                  {% endif %}
+                  {% for error in field.errors %}<span class="management-error">{{ error }}</span>{% endfor %}
+                </div>
+              {% endfor %}
+            </div>
+          </details>
+        {% endfor %}
+      {% else %}
+        <div class="management-form-grid">
+          {% for field in form %}
+            <div class="management-field {% if field.field.widget.input_type == 'checkbox' and not field.field.widget.allow_multiple_selected %}management-checkbox-field{% endif %}">
+              {% if field.field.widget.input_type == 'checkbox' and not field.field.widget.allow_multiple_selected %}
+                <label class="management-checkbox-label">{{ field }}<span><strong>{{ field.label }}</strong>{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}</span></label>
+              {% else %}
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.name == "slug" %}
+                  <datalist id="management-section-slugs">
+                    {% for slug, label in form.slug_suggestions %}
+                      <option value="{{ slug }}" label="{{ label }}"></option>
+                    {% endfor %}
+                  </datalist>
+                {% endif %}
+                {% if field.help_text %}<small class="management-help">{{ field.help_text }}</small>{% endif %}
+              {% endif %}
+              {% for error in field.errors %}<span class="management-error">{{ error }}</span>{% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if url_formset %}
+        <details class="management-fieldset" {% if url_formset.errors %}open{% endif %}>
+          <summary>Additional URLs</summary>
+          <div class="management-form-grid">
+            {% if url_formset.non_form_errors %}
+              <div class="management-form-errors" role="alert">{{ url_formset.non_form_errors }}</div>
+            {% endif %}
+            {{ url_formset.management_form }}
+            {% for form in url_formset %}
+              <div class="management-url-formset-form" data-formset-form>
+                {% if form.non_field_errors %}
+                  <div class="management-form-errors" role="alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+                <div class="management-field">
+                  <label for="{{ form.label.id_for_label }}">{{ form.label.label }}</label>
+                  {{ form.label }}
+                  {% if form.label.help_text %}<small class="management-help">{{ form.label.help_text }}</small>{% endif %}
+                  {% for error in form.label.errors %}<span class="management-error">{{ error }}</span>{% endfor %}
+                </div>
+                <div class="management-field">
+                  <label for="{{ form.url.id_for_label }}">{{ form.url.label }}</label>
+                  {{ form.url }}
+                  {% if form.url.help_text %}<small class="management-help">{{ form.url.help_text }}</small>{% endif %}
+                  {% for error in form.url.errors %}<span class="management-error">{{ error }}</span>{% endfor %}
+                </div>
+                <div class="management-field">
+                  <label for="{{ form.target.id_for_label }}">{{ form.target.label }}</label>
+                  {{ form.target }}
+                  {% if form.target.help_text %}<small class="management-help">{{ form.target.help_text }}</small>{% endif %}
+                  {% for error in form.target.errors %}<span class="management-error">{{ error }}</span>{% endfor %}
+                </div>
+                <div class="management-field">
+                  <label for="{{ form.sort_order.id_for_label }}">{{ form.sort_order.label }}</label>
+                  {{ form.sort_order }}
+                  {% if form.sort_order.help_text %}<small class="management-help">{{ form.sort_order.help_text }}</small>{% endif %}
+                  {% for error in form.sort_order.errors %}<span class="management-error">{{ error }}</span>{% endfor %}
+                </div>
+                <div class="management-field management-checkbox-field">
+                  <label class="management-checkbox-label">{{ form.is_active }}<span><strong>{{ form.is_active.label }}</strong>{% if form.is_active.help_text %}<small>{{ form.is_active.help_text }}</small>{% endif %}</span></label>
+                </div>
+                <div class="management-field management-checkbox-field">
+                  <label class="management-checkbox-label">{{ form.DELETE }}<span><strong>Remove this URL</strong></span></label>
+                </div>
+              </div>
+            {% endfor %}
+            <div class="management-url-formset-actions">
+              <button type="button" class="management-button management-button-secondary" id="add-url-btn">Add Another URL</button>
+            </div>
+          </div>
+        </details>
+      {% endif %}
+
+      <div class="management-form-footer"><a class="management-button management-button-quiet" href="{{ back_url }}">Cancel</a><button class="management-button management-button-primary" type="submit">{{ submit_label }}</button></div>
+    </form>
+  </section>
+  <script>
+    document.querySelectorAll('input[type="file"]').forEach(function(input) {
+      input.addEventListener('change', function() {
+        var file = this.files && this.files[0];
+        var img = document.getElementById('website-page-image-preview') || document.getElementById('img-' + this.id);
+        var lbl = document.getElementById('label-' + this.id);
+        if (file && img) {
+          var reader = new FileReader();
+          reader.onload = function(e) {
+            img.src = e.target.result;
+            img.style.display = 'block';
+            if (lbl) {
+              lbl.textContent = 'Selected: ' + file.name;
+              lbl.style.display = 'block';
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    });
+
+    // Handle "Add Another URL" button for formsets
+    var addUrlBtn = document.getElementById('add-url-btn');
+    if (addUrlBtn) {
+      addUrlBtn.addEventListener('click', function() {
+        var formsetForms = document.querySelectorAll('[data-formset-form]');
+        var totalFormsInput = document.getElementById('id_resource_urls-TOTAL_FORMS');
+        if (totalFormsInput && formsetForms.length > 0) {
+          var newFormIndex = parseInt(totalFormsInput.value);
+          var lastForm = formsetForms[formsetForms.length - 1];
+          var newForm = lastForm.cloneNode(true);
+
+          // Update form index in all form attributes
+          newForm.querySelectorAll('[name]').forEach(function(input) {
+            var name = input.getAttribute('name');
+            var id = input.getAttribute('id');
+            if (name) {
+              input.setAttribute('name', name.replace(/-\d+-/, '-' + newFormIndex + '-'));
+            }
+            if (id) {
+              input.setAttribute('id', id.replace(/-\d+-/, '-' + newFormIndex + '-'));
+            }
+          });
+
+          // Update label 'for' attributes
+          newForm.querySelectorAll('label').forEach(function(label) {
+            var forAttr = label.getAttribute('for');
+            if (forAttr) {
+              label.setAttribute('for', forAttr.replace(/-\d+-/, '-' + newFormIndex + '-'));
+            }
+          });
+
+          // Clear values in the new form
+          newForm.querySelectorAll('input[type="text"], input[type="url"], input[type="number"]').forEach(function(input) {
+            input.value = '';
+          });
+          newForm.querySelectorAll('input[type="checkbox"]').forEach(function(input) {
+            if (input.name.includes('is_active')) {
+              input.checked = true;
+            } else {
+              input.checked = false;
+            }
+          });
+
+          // Increment total forms count
+          totalFormsInput.value = newFormIndex + 1;
+
+          // Append the new form
+          lastForm.parentNode.insertBefore(newForm, addUrlBtn.parentNode);
+        }
+      });
+    }
+  </script>
+{% endblock %}

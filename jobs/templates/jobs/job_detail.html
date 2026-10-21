@@ -1,0 +1,33 @@
+{% extends "accounts/base_public.html" %}
+{% block title %}{{ job.title }} &middot; {{ website_settings.site_name }}{% endblock %}
+{% block content %}<div class="portal-shell portal-list-page">
+<article class="portal-list-detail" aria-labelledby="job-title">
+        <p class="portal-section-kicker">VERIFIED GOVERNMENT JOB</p>
+        <h1 id="job-title">{{ job.title }}</h1>
+        <time class="portal-list-date" datetime="{{ job.created_at|date:'c' }}">Published {{ job.created_at|date:"F j, Y" }}</time>
+        <dl class="portal-job-facts">
+          <div><dt>Organization</dt><dd>{{ job.organization }}</dd></div>
+          <div><dt>Qualification</dt><dd>{{ job.qualification }}</dd></div>
+          <div><dt>Location</dt><dd>{{ job.location }}</dd></div>
+          {% if job.category %}<div><dt>Category</dt><dd>{{ job.category }}</dd></div>{% endif %}
+          {% if job.vacancies_count %}<div><dt>Vacancies</dt><dd>{{ job.vacancies_count }}</dd></div>{% endif %}
+          {% if job.has_dob_criteria %}<div><dt>Eligible date of birth</dt><dd>{{ job.dob_criteria_display }}</dd></div>{% endif %}
+          {% if job.eligible_qualifications.exists %}<div><dt>Accepted qualifications</dt><dd>{% for qualification in job.eligible_qualifications.all %}{{ qualification.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</dd></div>{% endif %}
+          {% if job.application_start_date %}<div><dt>Applications open</dt><dd>{{ job.application_start_date|date:"F j, Y" }}</dd></div>{% endif %}
+          {% if job.application_end_date %}<div><dt>Application deadline</dt><dd>{{ job.application_end_date|date:"F j, Y" }}</dd></div>{% endif %}
+          {% if job.last_verified_date %}<div><dt>Last verified</dt><dd>{{ job.last_verified_date|date:"F j, Y" }}</dd></div>{% endif %}
+        </dl>
+        {% if job_eligibility %}
+          <p class="portal-card-badge {% if job_eligibility.is_eligible %}portal-badge--green{% else %}portal-badge--amber{% endif %}">
+            Your eligibility: {{ job_eligibility.status_badge }}
+          </p>
+          <p class="portal-criteria-description">{{ job_eligibility.status_description }}</p>
+        {% endif %}
+        <div class="portal-job-actions">
+            <a class="portal-cms-button" href="{% url 'jobs:eligibility_check' %}">Check Eligibility</a>
+            {% if job.official_notification_url %}<a class="portal-cms-button" href="{{ job.official_notification_url }}" target="_blank" rel="noopener noreferrer">Official notification ↗</a>{% endif %}
+            {% if job.application_url %}<a class="portal-cms-button" href="{{ job.application_url }}" target="_blank" rel="noopener noreferrer">Apply online ↗</a>{% endif %}
+            {% if job.source_url %}<a class="portal-list-detail-link" href="{{ job.source_url }}" target="_blank" rel="noopener noreferrer">Official source ↗</a>{% endif %}
+        </div>
+      </article>
+</div>{% endblock %}

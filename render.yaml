@@ -1,0 +1,70 @@
+# Render Blueprint for the Sarkari Result Django portal.
+# Reference: https://render.com/docs/blueprint-spec
+#
+# Declares one resource:
+#   * sarkari-result : a Python web service running the Django app under
+#                      Gunicorn, with migrations applied during the build
+#
+# The production database is a Neon PostgreSQL project, NOT a Render-managed
+# database, so no "databases:" block exists here. The connection strings are
+# supplied through the web service's environment variables and are marked
+# "sync: false": Render reads them from the dashboard and never overwrites
+# them on a later deploy, and no credential is ever stored in this file.
+#
+# config/settings/base.py already defaults PostgreSQL connections to
+# sslmode=require, which is what Neon requires, so the URLs work unchanged.
+#
+# Python is pinned via the ".python-version" file at the repository root
+# (3.13). Do not rely on Render's default (3.14.x): Django 5.2 supports
+# Python 3.10-3.13 only.
+
+services:
+  - type: web
+    name: sarkari-result
+    runtime: python
+    plan: free
+    # region: singapore    # optional; keep identical to the database region
+    # branch: main         # optional; defaults to the repository's default branch
+    # Migrations run against the DIRECT (unpooled) connection: Neon's PgBouncer
+    # pooler runs in transaction mode, and Neon's own guidance is to use the
+    # direct URL for migrations. If DATABASE_URL_UNPOOLED is not set, the
+    # ${VAR:-fallback} expansion below falls back to DATABASE_URL, so the build
+    # still works with only one variable configured.
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --no-input && DATABASE_URL=\"${DATABASE_URL_UNPOOLED:-$DATABASE_URL}\" python manage.py migrate --no-input"
+    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
+    # The project already exposes a read-only liveness route at both
+    # /health and /health/ (see config/urls.py).
+    healthCheckPath: /health/
+    envVars:
+      # Selects the production settings module (DEBUG=False, security headers).
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.production
+      # Render generates a strong 50+ character key; it is never committed.
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      # Neon PostgreSQL connection strings, copied from the Neon Console
+      # (Connect button) or obtained with `neon connection-string`.
+      #   DATABASE_URL          -> the POOLED host (hostname contains
+      #                            "-pooler"): used by the running app.
+      #   DATABASE_URL_UNPOOLED -> the DIRECT host: used for migrations.
+      # "sync: false" = paste these once in Render -> sarkari-result ->
+      # Environment; Render leaves them untouched on later deploys.
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_URL_UNPOOLED
+        sync: false
+      # Server starts fine with AI disabled. Add valid provider keys in the
+      # Render dashboard and set this to "true" later to enable the assistant.
+      - key: AI_ENABLED
+        value: "false"
+      # ---------------------------------------------------------------------
+      # Optional, set in the Render dashboard only when needed:
+      #   DJANGO_ALLOWED_HOSTS   comma-separated custom domains. The service's
+      #                          *.onrender.com hostname is trusted
+      #                          automatically via RENDER_EXTERNAL_HOSTNAME.
+      #   CSRF_TRUSTED_ORIGINS   e.g. "https://example.com,https://www.example.com"
+      #   EMAIL_BACKEND, EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER,
+      #   EMAIL_HOST_PASSWORD, EMAIL_USE_TLS, EMAIL_USE_SSL, DEFAULT_FROM_EMAIL
+      #   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+      #   GEMINI_API_KEY / OPENAI_API_KEY / OPENROUTER_API_KEY / GROK_API_KEY
+      # ---------------------------------------------------------------------

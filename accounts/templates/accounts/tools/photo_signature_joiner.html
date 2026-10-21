@@ -1,0 +1,126 @@
+{% extends "accounts/base_public.html" %}
+{% load static %}
+{% block title %}Photo Signature Joiner &middot; Photo Tools &middot; {{ website_settings.site_name }}{% endblock %}
+{% block meta_description %}<meta name="description" content="Join your photograph and signature into a single image in a photo-above-signature or photo-beside-signature layout. Free and processed in your browser.">{% endblock %}
+
+{% block content %}
+<section class="portal-content-section tool-page" aria-labelledby="tool-title">
+  <nav class="tool-breadcrumb" aria-label="Breadcrumb">
+    <a href="{% url 'tools' %}">Tools</a> <span aria-hidden="true">/</span> <span>Photo Signature Joiner</span>
+  </nav>
+
+  <div class="portal-section-heading">
+    <div>
+      <p class="portal-section-kicker">Photo tool</p>
+      <h1 id="tool-title">Photo Signature Joiner</h1>
+      <p>Upload a photograph and a signature, choose a layout, and download them combined into one image. Processing happens entirely in your browser.</p>
+    </div>
+  </div>
+
+  <p id="psj-error" class="tool-error" role="alert" hidden></p>
+
+  <div class="tool-card">
+    <div class="tool-layout">
+      <div class="tool-field">
+        <label for="psj-photo">Photograph (JPG, JPEG or PNG)</label>
+        <input type="file" id="psj-photo" accept="image/jpeg,image/png,.jpg,.jpeg,.png">
+      </div>
+      <div class="tool-field">
+        <label for="psj-signature">Signature image (JPG, JPEG or PNG)</label>
+        <input type="file" id="psj-signature" accept="image/jpeg,image/png,.jpg,.jpeg,.png">
+      </div>
+    </div>
+
+    <div id="psj-empty" class="tool-empty">Upload both a photograph and a signature image to begin.</div>
+
+    <div id="psj-workspace" hidden>
+      <div class="tool-layout">
+        <div>
+          <h2 class="tool-subtitle">Photograph</h2>
+          <div class="tool-preview">
+            <img id="psj-photo-preview" alt="Uploaded photograph preview">
+          </div>
+          <dl class="tool-meta">
+            <div><dt>Dimensions</dt><dd id="psj-photo-dims">—</dd></div>
+          </dl>
+        </div>
+
+        <div>
+          <h2 class="tool-subtitle">Signature</h2>
+          <div class="tool-preview">
+            <img id="psj-signature-preview" alt="Uploaded signature preview">
+          </div>
+          <dl class="tool-meta">
+            <div><dt>Dimensions</dt><dd id="psj-signature-dims">—</dd></div>
+          </dl>
+        </div>
+      </div>
+
+      <h2 class="tool-subtitle">Layout &amp; output</h2>
+      <div class="tool-row">
+        <div class="tool-field">
+          <label for="psj-layout">Layout</label>
+          <select id="psj-layout">
+            <option value="below" selected>Photo above, signature below</option>
+            <option value="beside">Photo beside signature</option>
+          </select>
+        </div>
+        <div class="tool-field">
+          <label for="psj-width">Output width (px)</label>
+          <input type="number" id="psj-width" min="20" max="6000" step="1" inputmode="numeric" value="600">
+        </div>
+        <div class="tool-field">
+          <label for="psj-height">Output height (px)</label>
+          <input type="number" id="psj-height" min="20" max="6000" step="1" inputmode="numeric" value="700">
+        </div>
+      </div>
+
+      <div class="tool-row">
+        <div class="tool-field">
+          <label for="psj-gap">Gap between images (px)</label>
+          <input type="number" id="psj-gap" min="0" max="200" step="1" inputmode="numeric" value="12">
+        </div>
+        <div class="tool-field">
+          <label for="psj-background">Background colour</label>
+          <select id="psj-background">
+            <option value="#ffffff" selected>White</option>
+            <option value="#f4f6fb">Light grey</option>
+            <option value="#eef4fb">Light blue</option>
+            <option value="#111111">Black</option>
+          </select>
+        </div>
+        <div class="tool-field">
+          <label for="psj-format">Download format</label>
+          <select id="psj-format">
+            <option value="image/png" selected>PNG</option>
+            <option value="image/jpeg">JPEG</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tool-actions">
+        <button type="button" class="tool-btn tool-btn--primary" id="psj-generate">Generate preview</button>
+        <button type="button" class="tool-btn tool-btn--ghost" id="psj-reset">Reset</button>
+        <button type="button" class="tool-btn tool-btn--ghost" id="psj-remove">Remove images</button>
+      </div>
+      <p class="tool-status" id="psj-status" role="status" aria-live="polite" hidden></p>
+
+      <div id="psj-output" hidden>
+        <h2 class="tool-subtitle">Final preview</h2>
+        <div class="tool-preview">
+          <img id="psj-preview" alt="Combined photo and signature preview">
+        </div>
+        <div class="tool-actions">
+          <a class="tool-btn tool-btn--primary" id="psj-download" href="#" download>Download image</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="tool-note">Your images are processed locally and are never uploaded or stored on our servers.</p>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'accounts/tool_photo_signature_joiner.js' %}" defer></script>
+{% endblock %}

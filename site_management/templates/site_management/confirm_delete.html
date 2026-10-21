@@ -1,0 +1,15 @@
+{% extends "site_management/base.html" %}
+{% block title %}Confirm deletion{% endblock %}
+{% block content %}
+  <section class="management-confirm-card">
+    <span class="management-danger-icon" aria-hidden="true">!</span>
+    <span class="management-eyebrow">DESTRUCTIVE ACTION</span>
+    <h1>Delete “{{ object_label }}”?</h1>
+    <p>This action cannot be undone. {{ warning }}</p>
+    <form method="post">
+      {% csrf_token %}
+      <a class="management-button management-button-quiet" href="{{ back_url }}">Cancel</a>
+      <button class="management-button management-button-danger" type="submit">Delete permanently</button>
+    </form>
+  </section>
+{% endblock %}

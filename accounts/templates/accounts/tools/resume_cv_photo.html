@@ -1,0 +1,131 @@
+{% extends "accounts/base_public.html" %}
+{% load static %}
+{% block title %}Resume/CV Photo Tool &middot; Photo Tools &middot; {{ website_settings.site_name }}{% endblock %}
+{% block meta_description %}<meta name="description" content="Prepare a clean photo for your resume or CV — set a custom size or an aspect-ratio preset, preview it and download as PNG or JPEG in your browser.">{% endblock %}
+
+{% block content %}
+<section class="portal-content-section tool-page" aria-labelledby="tool-title">
+  <nav class="tool-breadcrumb" aria-label="Breadcrumb">
+    <a href="{% url 'tools' %}">Tools</a> <span aria-hidden="true">/</span> <span>Resume/CV Photo Tool</span>
+  </nav>
+
+  <div class="portal-section-heading">
+    <div>
+      <p class="portal-section-kicker">Photo tool</p>
+      <h1 id="tool-title">Resume/CV Photo Tool</h1>
+      <p>Resize a photograph to a neat size for your resume or CV, on a plain background. You can also prepare the dimensions used by many online forms — please check your form's requirements as these are generic sizes, not official specifications.</p>
+    </div>
+  </div>
+
+  <p id="rcv-error" class="tool-error" role="alert" hidden></p>
+
+  <div class="tool-card">
+    <div class="tool-field">
+      <label for="rcv-file">Choose a photograph (JPG, JPEG or PNG)</label>
+      <input type="file" id="rcv-file" accept="image/jpeg,image/png,.jpg,.jpeg,.png">
+    </div>
+
+    <div id="rcv-empty" class="tool-empty">No image selected yet. Choose a file above to begin.</div>
+
+    <div id="rcv-workspace" hidden>
+      <div class="tool-layout">
+        <div>
+          <h2 class="tool-subtitle">Original image</h2>
+          <div class="tool-preview">
+            <img id="rcv-source" alt="Selected image preview">
+          </div>
+          <dl class="tool-meta">
+            <div><dt>Original size</dt><dd id="rcv-orig-dims">—</dd></div>
+            <div><dt>File size</dt><dd id="rcv-orig-size">—</dd></div>
+          </dl>
+        </div>
+
+        <div>
+          <h2 class="tool-subtitle">Output settings</h2>
+          <div class="tool-field">
+            <label for="rcv-preset">Size preset</label>
+            <select id="rcv-preset">
+              <option value="custom" selected>Custom</option>
+              <option value="square">Square (1:1)</option>
+              <option value="portrait">Portrait (3:4)</option>
+              <option value="passport">Passport-style (35 × 45 mm @ 300 dpi)</option>
+              <option value="stamp">Stamp size (20 × 25 mm @ 300 dpi)</option>
+            </select>
+          </div>
+
+          <div class="tool-row">
+            <div class="tool-field">
+              <label for="rcv-width">Width (px)</label>
+              <input type="number" id="rcv-width" min="20" max="6000" step="1" inputmode="numeric">
+            </div>
+            <div class="tool-field">
+              <label for="rcv-height">Height (px)</label>
+              <input type="number" id="rcv-height" min="20" max="6000" step="1" inputmode="numeric">
+            </div>
+          </div>
+
+          <div class="tool-row">
+            <div class="tool-field">
+              <label for="rcv-fit">Image fit</label>
+              <select id="rcv-fit">
+                <option value="contain" selected>Contain (keep proportions, add background)</option>
+                <option value="cover">Cover (fill the frame, may crop)</option>
+              </select>
+            </div>
+            <div class="tool-field">
+              <label for="rcv-background">Background colour</label>
+              <select id="rcv-background">
+                <option value="#ffffff" selected>White</option>
+                <option value="#f4f6fb">Light grey</option>
+                <option value="#eef4fb">Light blue</option>
+                <option value="#111111">Black</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="tool-field">
+            <label for="rcv-format">Download format</label>
+            <select id="rcv-format">
+              <option value="image/png" selected>PNG</option>
+              <option value="image/jpeg">JPEG</option>
+            </select>
+          </div>
+
+          <p class="tool-note">Expected output: <strong id="rcv-expected">—</strong></p>
+
+          <div class="tool-actions">
+            <button type="button" class="tool-btn tool-btn--primary" id="rcv-generate">Generate preview</button>
+            <button type="button" class="tool-btn tool-btn--ghost" id="rcv-reset">Reset</button>
+            <button type="button" class="tool-btn tool-btn--ghost" id="rcv-remove">Remove Image</button>
+          </div>
+          <p class="tool-status" id="rcv-status" role="status" aria-live="polite" hidden></p>
+        </div>
+      </div>
+
+      <div id="rcv-output" hidden>
+        <h2 class="tool-subtitle">Final preview</h2>
+        <div class="tool-layout">
+          <div class="tool-preview">
+            <img id="rcv-preview" alt="Processed image preview">
+          </div>
+          <div>
+            <dl class="tool-meta">
+              <div><dt>Output size</dt><dd id="rcv-out-dims">—</dd></div>
+              <div><dt>File size</dt><dd id="rcv-out-size">—</dd></div>
+            </dl>
+            <div class="tool-actions">
+              <a class="tool-btn tool-btn--primary" id="rcv-download" href="#" download>Download image</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="tool-note">Your photo is processed locally in your browser and is never uploaded or stored on our servers. Sizes here are generic suggestions only — always confirm the exact requirements on the portal you are applying to.</p>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'accounts/tool_resume_cv_photo.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% comment %}
+Shared visual text editor.
+
+Rendered for any management form (or inline formset row) that mixes in
+TextStyleEditorMixin. It never hard-codes a section: the element list, the
+available values and the validation all come from site_management/styling.py,
+so a new content block reuses this exact markup.
+{% endcomment %}
+{% if editor_form.style_groups %}
+  <details class="management-fieldset management-style-fieldset"{% if editor_form.style_has_errors %} open{% endif %}>
+    <summary>Text appearance &amp; spacing</summary>
+    <small class="management-help">
+      Style each text element of this block independently — margin top, margin bottom,
+      colour, font size, font weight, normal or italic, and left/centre/right alignment.
+      Leave a control on “Default” to keep the website's built-in look. Saved values are
+      validated and only affect this block.
+    </small>
+    {% for group in editor_form.style_groups %}
+      <fieldset class="management-style-element">
+        <legend>{{ group.label }}</legend>
+        <div class="management-style-grid">
+          {% for field in group.fields %}
+            <label class="management-style-control" for="{{ field.id_for_label }}">
+              <span>{{ field.label }}</span>
+              {{ field }}
+              {% for error in field.errors %}<span class="management-error">{{ error }}</span>{% endfor %}
+            </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+    {% endfor %}
+  </details>
+{% endif %}

@@ -1,0 +1,55 @@
+{% extends "site_management/base.html" %}
+{% block title %}{{ object.title }}{% endblock %}
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <a class="management-back-link" href="{% url 'site_management:resource_list' section %}">← Back to {{ config.label }}</a>
+      <span class="management-eyebrow">{{ config.eyebrow }}</span>
+      <h1>{{ object.title }}</h1>
+      <p>{{ config.description }}</p>
+    </div>
+    <div class="management-heading-actions">
+      {% if public_url %}<a class="management-button management-button-quiet" href="{{ public_url }}" target="_blank" rel="noopener noreferrer">View on website ↗</a>{% endif %}
+      <a class="management-button management-button-primary" href="{% url 'site_management:resource_edit' section object.pk %}">Edit</a>
+      <a class="management-button management-button-danger" href="{% url 'site_management:resource_delete' section object.pk %}">Delete</a>
+    </div>
+  </div>
+
+  <section class="management-section-card" aria-label="{{ config.label }} details">
+    <div class="management-item-row">
+      <div>
+        <strong>{{ object.title }}</strong>
+        <span>
+          {% if object.is_published %}Live{% elif object.status == "published" %}Scheduled (hidden until its publication date){% else %}Draft{% endif %}
+          {% if object.published_date %}· Publication date {{ object.published_date|date:"M j, Y" }}{% else %}· Publishes immediately{% endif %}
+        </span>
+        {% if object.exam %}<span>Related exam: {{ object.exam.title }}</span>{% else %}<span>Related exam: not linked</span>{% endif %}
+        {% if object.description %}<span>{{ object.description }}</span>{% endif %}
+        {% if object.exam_year %}<span>Exam year: {{ object.exam_year }}</span>{% endif %}
+        {% if object.closing_date %}<span>Last date to apply: {{ object.closing_date|date:"M j, Y" }}</span>{% endif %}
+        {% if object.display_date %}<span>Display date: {{ object.display_date|date:"M j, Y" }}</span>{% endif %}
+        <span>Display order: {{ object.sort_order }} · {% if object.is_active %}Active{% else %}Inactive{% endif %}</span>
+        <span>Created {{ object.created_at|date:"M j, Y, H:i" }} · Updated {{ object.updated_at|date:"M j, Y, H:i" }}</span>
+      </div>
+      <span class="management-item-state {% if object.is_published %}is-active{% else %}is-inactive{% endif %}">{% if object.is_published %}Live{% else %}Not live{% endif %}</span>
+    </div>
+
+    <div class="management-actions" style="padding: 0 24px 24px;">
+      {% if object.pdf_file %}
+        <a class="management-public-link" href="{{ object.pdf_file.url }}" target="_blank" rel="noopener noreferrer">Open PDF ↗</a>
+      {% else %}
+        <span class="management-muted">No PDF uploaded.</span>
+      {% endif %}
+      {% if object.official_url %}
+        <a class="management-public-link" href="{{ object.official_url }}" target="_blank" rel="noopener noreferrer">Open official link ↗</a>
+      {% endif %}
+    </div>
+  </section>
+
+  <form method="post" action="{% url 'site_management:resource_toggle' section object.pk %}" style="margin-top: 16px;">
+    {% csrf_token %}
+    <button class="management-button {% if object.status == 'published' %}management-button-quiet{% else %}management-button-primary{% endif %}" type="submit">
+      {% if object.status == "published" %}Unpublish this {{ config.singular }}{% else %}Publish this {{ config.singular }}{% endif %}
+    </button>
+  </form>
+{% endblock %}

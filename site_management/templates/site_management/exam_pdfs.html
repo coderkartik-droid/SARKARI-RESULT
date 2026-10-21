@@ -1,0 +1,33 @@
+{% extends "site_management/base.html" %}
+{% block title %}Exam PDFs{% endblock %}
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <a class="management-back-link" href="{% url 'site_management:exams' %}">← Back to exams</a>
+      <span class="management-eyebrow">PDF MANAGER</span>
+      <h1>PDF files for “{{ exam.title }}”</h1>
+      <p>Each PDF becomes a download link on the exam card. You can also add an optional external link, such as the official online application page.</p>
+    </div>
+    <a class="management-button management-button-primary" href="{% url 'site_management:exam_pdf_create' exam.pk %}">＋ Add PDF</a>
+  </div>
+  <section class="management-section-card" aria-label="Attached PDF files">
+    {% for pdf in pdfs %}
+      <article class="management-item-row">
+        <div>
+          <strong>{{ pdf.display_name }}</strong>
+          {% if pdf.pdf_file %}<a class="management-url-link" href="{{ pdf.pdf_file.url }}" target="_blank" rel="noopener noreferrer"><code>{{ pdf.pdf_file.name }}</code><span aria-hidden="true">📄</span></a>{% endif %}
+          {% if pdf.external_link %}<a class="management-url-link" href="{{ pdf.external_link }}" target="_blank" rel="noopener noreferrer"><code>{{ pdf.link_text|default:pdf.external_link }}</code><span aria-hidden="true">🔗</span></a>{% endif %}
+          <span>Display order {{ pdf.sort_order }}</span>
+        </div>
+        <span class="management-item-state {% if pdf.is_active %}is-active{% else %}is-inactive{% endif %}">{% if pdf.is_active %}Active{% else %}Inactive{% endif %}</span>
+        <div class="management-actions">
+          <a href="{% url 'site_management:exam_pdf_edit' pdf.pk %}">Edit</a>
+          <a class="management-danger-link" href="{% url 'site_management:exam_pdf_delete' pdf.pk %}">Delete</a>
+        </div>
+      </article>
+    {% empty %}
+      <p class="management-empty management-empty-large">No PDF files attached yet. Use “＋ Add PDF” to upload the official notification, syllabus, or any other document.</p>
+    {% endfor %}
+  </section>
+  <p class="management-help">The exam itself — title, description, and dates — is edited in the <a href="{% url 'site_management:exam_edit' exam.pk %}">exam editor</a>.</p>
+{% endblock %}

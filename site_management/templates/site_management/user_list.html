@@ -1,0 +1,130 @@
+{% extends "site_management/base.html" %}
+
+{% block title %}Users{% endblock %}
+
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <span class="management-eyebrow">PEOPLE &amp; PERMISSIONS</span>
+      <h1>Users</h1>
+      <p>Everyone who can sign in to your website. Review accounts and manage their access here, without leaving the workspace.</p>
+    </div>
+  </div>
+
+  <section class="management-stats" aria-label="Account statistics" style="grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 24px;">
+    <article class="management-stat">
+      <span>Total accounts</span>
+      <strong>{{ total_accounts }}</strong>
+      <small>Everyone who can sign in</small>
+    </article>
+    <article class="management-stat">
+      <span>Staff access</span>
+      <strong>{{ staff_accounts }}</strong>
+      <small>Can open this workspace</small>
+    </article>
+    <article class="management-stat">
+      <span>Active</span>
+      <strong style="color: #047857;">{{ active_accounts }}</strong>
+      <small>Sign-in allowed</small>
+    </article>
+    <article class="management-stat">
+      <span>Inactive</span>
+      <strong style="color: #b91c1c;">{{ inactive_accounts }}</strong>
+      <small>Sign-in blocked</small>
+    </article>
+  </section>
+
+  <form class="management-filter-bar" method="get" action="{% url 'site_management:user_list' %}" role="search">
+    <label class="management-filter-field management-filter-grow">
+      <span>Search</span>
+      <input class="management-input" type="search" name="q" value="{{ query }}" placeholder="Username, name, or email">
+    </label>
+    <label class="management-filter-field">
+      <span>Role</span>
+      <select class="management-input" name="role">
+        <option value=""{% if not role %} selected{% endif %}>All roles</option>
+        <option value="staff"{% if role == "staff" %} selected{% endif %}>Staff &amp; administrators</option>
+        <option value="member"{% if role == "member" %} selected{% endif %}>Public members</option>
+      </select>
+    </label>
+    <label class="management-filter-field">
+      <span>Status</span>
+      <select class="management-input" name="status">
+        <option value=""{% if not status_filter %} selected{% endif %}>Any status</option>
+        <option value="active"{% if status_filter == "active" %} selected{% endif %}>Active</option>
+        <option value="inactive"{% if status_filter == "inactive" %} selected{% endif %}>Inactive</option>
+      </select>
+    </label>
+    <div class="management-filter-actions">
+      <button class="management-button management-button-primary" type="submit">Apply</button>
+      {% if query or role or status_filter %}
+        <a class="management-button management-button-quiet" href="{% url 'site_management:user_list' %}">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  {% if page_obj.object_list %}
+    <div class="management-section-card management-table-card">
+      <table class="management-table">
+        <caption class="management-visually-hidden">Website user accounts</caption>
+        <thead>
+          <tr>
+            <th scope="col">Username</th>
+            <th scope="col">Email</th>
+            <th scope="col">Account status</th>
+            <th scope="col">Staff status</th>
+            <th scope="col">Date joined</th>
+            <th scope="col"><span class="management-visually-hidden">Account</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for account in page_obj %}
+            <tr>
+              <th scope="row">
+                <span class="management-table-username">
+                  <a href="{% url 'site_management:user_detail' account.pk %}">{{ account.username }}</a>
+                  {% if account.pk == request.user.pk %}<span class="management-tag">You</span>{% endif %}
+                </span>
+              </th>
+              <td class="management-table-email">{{ account.email }}</td>
+              <td>
+                {% if account.is_active %}
+                  <span class="management-status is-active">Active</span>
+                {% else %}
+                  <span class="management-status is-inactive">Inactive</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if account.is_superuser %}
+                  <span class="management-status is-staff">Superuser</span>
+                {% elif account.is_staff %}
+                  <span class="management-status is-staff">Staff</span>
+                {% else %}
+                  <span class="management-status is-neutral">Member</span>
+                {% endif %}
+              </td>
+              <td><time datetime="{{ account.date_joined|date:'c' }}">{{ account.date_joined|date:"M j, Y" }}</time></td>
+              <td class="management-table-action">
+                <a class="management-button management-button-secondary management-button-small" href="{% url 'site_management:user_detail' account.pk %}">Open</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+      <nav class="management-pagination" aria-label="User pages">
+        {% if page_obj.has_previous %}
+          <a class="management-button management-button-secondary" href="?q={{ query|urlencode }}&amp;role={{ role|urlencode }}&amp;status={{ status_filter|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a class="management-button management-button-secondary" href="?q={{ query|urlencode }}&amp;role={{ role|urlencode }}&amp;status={{ status_filter|urlencode }}&amp;page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    <p class="management-empty management-empty-large">No accounts match your search.</p>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "accounts/base_public.html" %}
+{% block title %}Latest Government Jobs &middot; {{ website_settings.site_name }}{% endblock %}
+{% block content %}<section class="portal-list-content" aria-labelledby="listing-title">
+        <p class="portal-section-kicker">VERIFIED OPENINGS</p>
+        <h1 id="listing-title">Latest Government Jobs</h1>
+        <p class="portal-list-intro">Published, verified opportunities that are still active.</p>
+        <form class="portal-list-search" method="get" action="{% url 'jobs:list' %}" role="search">
+          <label class="visually-hidden" for="job-search">Search government jobs</label>
+          <input id="job-search" type="search" name="q" value="{{ query }}" placeholder="Search jobs, organization, or qualification">
+          <button type="submit">Search</button>
+        </form>
+
+        {% if page_obj.object_list %}
+          <div class="portal-listing-grid portal-listing-grid-page">
+            {% for job in page_obj %}
+              <a class="portal-listing-card portal-listing-card-page portal-card-main portal-full-card-link" href="{% url 'jobs:detail' job.pk %}" aria-label="View details for {{ job.title }}">
+                <div class="portal-listing-topline">
+                  <span class="portal-listing-icon" aria-hidden="true">•</span>
+                  <time class="portal-status" datetime="{{ job.created_at|date:'c' }}">Published {{ job.created_at|date:"M j, Y" }}</time>
+                </div>
+                <h2>{{ job.title }}</h2>
+                <p>{{ job.organization }} · {{ job.qualification }} · {{ job.location }}</p>
+                {% if job.application_end_date %}<p>Application deadline: {{ job.application_end_date|date:"M j, Y" }}</p>{% endif %}
+                <span class="portal-list-detail-link">View job details <span aria-hidden="true">→</span></span>
+              </a>
+            {% endfor %}
+          </div>
+          {% include "accounts/includes/pagination.html" with page_obj=page_obj query=query %}
+        {% else %}
+          <p class="portal-list-empty" role="status">{% if query %}No active verified jobs match “{{ query }}”.{% else %}There are no active verified jobs available right now.{% endif %}</p>
+        {% endif %}
+      </section>
+    {% endblock %}

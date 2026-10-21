@@ -1,0 +1,263 @@
+{% extends "accounts/base_public.html" %}
+{% load static %}
+{% block title %}Check Eligibility &middot; {{ website_settings.site_name }}{% endblock %}
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'accounts/eligibility.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="elig-page">
+
+  {# ── Page heading ──────────────────────────────────────────────── #}
+  <header class="elig-hero">
+    <p class="elig-kicker">PERSONALIZED VERIFICATION</p>
+    <h1 class="elig-title">Check Exam Eligibility</h1>
+    <p class="elig-lead">
+      Enter your date of birth and qualification to see the published exams you are
+      eligible for. Results are calculated on the server from each exam&rsquo;s recorded
+      criteria &mdash; nothing is saved to your profile.
+    </p>
+    <ul class="elig-hero-points">
+      <li>Date-of-birth boundaries are inclusive.</li>
+      <li>You qualify when your qualification matches <strong>any</strong> accepted qualification.</li>
+      <li>Exams with incomplete criteria are never shown as eligible.</li>
+    </ul>
+  </header>
+
+  {# ── Eligibility form ──────────────────────────────────────────── #}
+  <section class="elig-panel elig-panel--form" aria-labelledby="elig-form-heading">
+    <div class="elig-panel-head">
+      <h2 class="elig-panel-title" id="elig-form-heading">Enter your details</h2>
+      <p class="elig-panel-text">Both fields are required. Press Enter or use the button to check.</p>
+    </div>
+
+    {% if profile_prefilled %}
+      <p class="elig-prefill-note" role="note">
+        We pre-filled your saved profile details for convenience &mdash; submitting this form does
+        <strong>not</strong> change your profile, and only the submitted values are used for this check.
+      </p>
+    {% endif %}
+
+    <form class="elig-form" method="get" action="{% url 'jobs:eligibility_check' %}" novalidate>
+      {% if form.non_field_errors %}
+        <div class="elig-alert elig-alert--error" role="alert">
+          {% for error in form.non_field_errors %}
+            <p><span class="elig-alert-icon" aria-hidden="true">!</span> {{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="elig-field-grid">
+        <div class="elig-field {% if form.dob.errors %}elig-field--invalid{% endif %}">
+          <label class="elig-label" for="id_dob">
+            Date of Birth <span class="elig-required" aria-hidden="true">*</span>
+          </label>
+          {{ form.dob }}
+          {% if form.dob.errors %}
+            <div class="elig-alert elig-alert--error" id="dob-error" role="alert">
+              {% for error in form.dob.errors %}
+                <p><span class="elig-alert-icon" aria-hidden="true">!</span> {{ error }}</p>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="elig-hint" id="dob-hint">Required. Compared against each exam&rsquo;s eligible date-of-birth window.</p>
+          {% endif %}
+        </div>
+
+        <div class="elig-field {% if form.qualification.errors %}elig-field--invalid{% endif %}">
+          <label class="elig-label" for="id_qualification">
+            Your Qualification <span class="elig-required" aria-hidden="true">*</span>
+          </label>
+          {{ form.qualification }}
+          {% if form.qualification.errors %}
+            <div class="elig-alert elig-alert--error" id="qualification-error" role="alert">
+              {% for error in form.qualification.errors %}
+                <p><span class="elig-alert-icon" aria-hidden="true">!</span> {{ error }}</p>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="elig-hint" id="qualification-hint">Required. Matched against the qualifications each exam accepts.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="elig-actions">
+        <button type="submit" class="elig-btn elig-btn--primary">Check Eligibility</button>
+        {% if submitted %}
+          <a class="elig-btn elig-btn--ghost" href="{% url 'jobs:eligibility_check' %}">Reset</a>
+        {% endif %}
+      </div>
+    </form>
+  </section>
+
+  {# ── Results (same page, below the form) ───────────────────────── #}
+  {% if evaluated %}
+
+    <section class="elig-summary" aria-label="Eligibility summary">
+      <div class="elig-summary-meta">
+        <p class="elig-summary-line">
+          Checked for
+          <strong>{{ candidate_dob|date:"F j, Y" }}</strong>
+          {% if qualification_label %} &middot; <strong>{{ qualification_label }}</strong>{% endif %}
+        </p>
+        <p class="elig-summary-source">Based on the details you entered.</p>
+      </div>
+      <div class="elig-summary-counts">
+        <span class="elig-pill {% if results %}elig-pill--success{% else %}elig-pill--neutral{% endif %}">
+          {{ results|length }} eligible result{{ results|length|pluralize }}
+        </span>
+        {% if incomplete_results %}
+          <span class="elig-pill elig-pill--warning">{{ incomplete_results|length }} unverified</span>
+        {% endif %}
+      </div>
+    </section>
+
+    <aside class="elig-notice" role="note">
+      <strong>How to read this:</strong> &ldquo;Matches entered criteria&rdquo; means your date of birth falls
+      inside the exam&rsquo;s eligible window and your qualification is one the exam accepts. Final eligibility is
+      always confirmed by the official notification, including category relaxations and subject requirements.
+    </aside>
+
+    {% if results %}
+      <div class="elig-grid">
+        {% for item in results %}
+          <article class="elig-card elig-card--eligible">
+            <div class="elig-card-top">
+              <span class="elig-chip elig-chip--{{ item.kind|lower }}">{{ item.kind }}</span>
+              <span class="elig-pill elig-pill--success">{{ item.status_badge }}</span>
+            </div>
+
+            <h3 class="elig-card-title">
+              <a href="{{ item.detail_url }}">{{ item.title }}</a>
+            </h3>
+
+            {% if item.organization or item.location %}
+              <p class="elig-card-meta">
+                {{ item.organization }}{% if item.organization and item.location %} &middot; {% endif %}{{ item.location }}
+              </p>
+            {% endif %}
+
+            {% if item.summary %}
+              <p class="elig-card-summary">{{ item.summary|truncatewords:32 }}</p>
+            {% endif %}
+
+            <dl class="elig-facts">
+              <div class="elig-fact">
+                <dt>Eligible date of birth</dt>
+                <dd>{{ item.dob_criteria_display }}</dd>
+              </div>
+              <div class="elig-fact">
+                <dt>Accepted qualifications</dt>
+                <dd>
+                  {{ item.qualification_criteria_display }}
+                  {% if item.qualification_status %}<span class="elig-fact-note">{{ item.qualification_status }}</span>{% endif %}
+                </dd>
+              </div>
+            </dl>
+
+            <div class="elig-card-actions">
+              <a class="elig-btn elig-btn--primary elig-btn--sm" href="{{ item.detail_url }}">{{ item.action_label }}</a>
+              {% if item.official_notification_url %}
+                <a class="elig-link" href="{{ item.official_notification_url }}" target="_blank" rel="noopener noreferrer">Official notification &#8599;</a>
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="elig-empty" role="status">
+        <h3>No exams found matching your date of birth and qualification.</h3>
+        <p class="elig-empty-hint">
+          Date-of-birth windows and accepted qualifications vary by exam. Try a different
+          qualification, or browse every published exam.
+        </p>
+        <div class="elig-actions elig-actions--center">
+          <a class="elig-btn elig-btn--primary" href="{% url 'accounts:exams' %}">Browse all exams</a>
+          <a class="elig-btn elig-btn--ghost" href="{% url 'jobs:eligibility_check' %}">Start over</a>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if incomplete_results %}
+      <section class="elig-incomplete" aria-labelledby="elig-incomplete-heading">
+        <div class="elig-panel-head">
+          <h2 class="elig-panel-title" id="elig-incomplete-heading">Could not be verified</h2>
+          <p class="elig-panel-text">
+            These listings do not have complete recorded criteria, so they cannot be checked.
+            They are <strong>not</strong> shown as eligible.
+          </p>
+        </div>
+        <div class="elig-grid">
+          {% for item in incomplete_results %}
+            <article class="elig-card elig-card--incomplete">
+              <div class="elig-card-top">
+                <span class="elig-chip elig-chip--{{ item.kind|lower }}">{{ item.kind }}</span>
+                <span class="elig-pill elig-pill--warning">{{ item.status_badge }}</span>
+              </div>
+              <h3 class="elig-card-title">
+                <a href="{{ item.detail_url }}">{{ item.title }}</a>
+              </h3>
+              {% if item.organization or item.location %}
+                <p class="elig-card-meta">
+                  {{ item.organization }}{% if item.organization and item.location %} &middot; {% endif %}{{ item.location }}
+                </p>
+              {% endif %}
+              <dl class="elig-facts">
+                <div class="elig-fact">
+                  <dt>Eligible date of birth</dt>
+                  <dd>{{ item.dob_criteria_display }}</dd>
+                </div>
+                <div class="elig-fact">
+                  <dt>Accepted qualifications</dt>
+                  <dd>{{ item.qualification_criteria_display }}</dd>
+                </div>
+              </dl>
+              <p class="elig-card-summary">{{ item.status_description }}</p>
+              <div class="elig-card-actions">
+                <a class="elig-link elig-link--primary" href="{{ item.detail_url }}">{{ item.action_label }} <span aria-hidden="true">&rarr;</span></a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+  {% elif submitted %}
+    <div class="elig-empty elig-empty--error" role="alert">
+      <h3>Please correct the errors above</h3>
+      <p class="elig-empty-hint">
+        A valid date of birth and a qualification are both needed before eligibility can be checked.
+      </p>
+    </div>
+
+  {% else %}
+    {# ── Initial guidance ────────────────────────────────────────── #}
+    <section class="elig-panel elig-panel--guide" aria-labelledby="elig-guide-heading">
+      <h2 class="elig-panel-title" id="elig-guide-heading">How eligibility is evaluated</h2>
+      <ul class="elig-guide-list">
+        <li>
+          <span class="elig-guide-icon" aria-hidden="true">1</span>
+          <div><strong>Date of birth.</strong> Your date of birth must fall inside the exam&rsquo;s eligible
+          date-of-birth window. Both boundaries are inclusive.</div>
+        </li>
+        <li>
+          <span class="elig-guide-icon" aria-hidden="true">2</span>
+          <div><strong>Qualification.</strong> Your qualification must match at least one qualification
+          accepted for the exam. A higher qualification does not automatically satisfy a different one.</div>
+        </li>
+        <li>
+          <span class="elig-guide-icon" aria-hidden="true">3</span>
+          <div><strong>Unverified.</strong> Exams with criteria that cannot be checked are shown separately as
+          unverified rather than eligible.</div>
+        </li>
+        <li>
+          <span class="elig-guide-icon" aria-hidden="true">4</span>
+          <div><strong>Official rules.</strong> Category relaxations (SC/ST/OBC/PwD) and special conditions
+          should always be confirmed in the official notification.</div>
+        </li>
+      </ul>
+    </section>
+  {% endif %}
+
+</div>
+{% endblock %}

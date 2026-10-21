@@ -1,0 +1,81 @@
+{% extends "site_management/base.html" %}
+{% block title %}{{ page_heading }}{% endblock %}
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <a class="management-back-link" href="{% url 'site_management:dashboard' %}">← Back to workspace</a>
+      <span class="management-eyebrow">{{ eyebrow }}</span>
+      <h1>{{ page_heading }}</h1>
+      <p>Publish exam announcements with their official PDF downloads, eligible date-of-birth window and accepted qualifications. Published exams appear on the public Exams page, in the Upcoming/Recent exams pages and in the Exams box on the homepage.</p>
+    </div>
+    <div class="management-heading-actions">
+      <a class="management-button management-button-quiet" href="{% url 'accounts:exams' %}" target="_blank" rel="noopener noreferrer">View on website ↗</a>
+      <a class="management-button management-button-primary" href="{% url 'site_management:exam_create' %}">＋ Add exam</a>
+    </div>
+  </div>
+
+  <nav class="management-filter-bar" aria-label="Exam date filters">
+    <a class="management-button {% if exam_kind == 'all' %}management-button-primary{% else %}management-button-quiet{% endif %}" href="{% url 'site_management:exams' %}">All exams</a>
+    <a class="management-button {% if exam_kind == 'upcoming' %}management-button-primary{% else %}management-button-quiet{% endif %}" href="{% url 'site_management:upcoming_exams' %}">Upcoming exams</a>
+    <a class="management-button {% if exam_kind == 'recent' %}management-button-primary{% else %}management-button-quiet{% endif %}" href="{% url 'site_management:recent_exams' %}">Recent exams</a>
+  </nav>
+
+  <form class="management-filter-bar" method="get" role="search">
+    <label class="management-filter-field management-filter-grow">
+      <span>Search</span>
+      <input class="management-input" type="search" name="q" value="{{ query }}" placeholder="Exam title or description">
+    </label>
+    <div class="management-filter-actions">
+      <button class="management-button management-button-primary" type="submit">Apply</button>
+      {% if query %}<a class="management-button management-button-quiet" href="?">Clear</a>{% endif %}
+    </div>
+  </form>
+
+  {% if page_obj.object_list %}
+    <section class="management-section-card" aria-label="Managed exams">
+      {% for exam in page_obj %}
+        <article class="management-item-row">
+          <div>
+            <strong>{{ exam.title }}</strong>
+            <span>
+              {% if exam.status == "published" %}Published{% else %}Draft{% endif %}
+              ·
+              {% if exam.exam_date %}{{ exam_date_label }} {{ exam.exam_date|date:"M j, Y" }}{% else %}No exam date set{% endif %}
+              ·
+              {% if exam.publish_at %}Shows from {{ exam.publish_at|date:"M j, Y, H:i" }}{% else %}No start time{% endif %}
+            </span>
+            {% if exam.description %}<span>{{ exam.description|truncatechars:160 }}</span>{% endif %}
+            {% with pdfs=exam.pdfs.all %}<span>{{ pdfs|length }} PDF file{{ pdfs|length|pluralize }}</span>{% endwith %}
+            <span>Eligible DOB: {{ exam.dob_criteria_display }}</span>
+            {% with quals=exam.eligible_qualifications.all %}<span>Accepted qualifications: {% if quals %}{% for qualification in quals %}{{ qualification.name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}Not configured{% endif %}</span>{% endwith %}
+          </div>
+          <span class="management-item-state {% if exam.is_published %}is-active{% else %}is-inactive{% endif %}">{% if exam.is_published %}Live{% else %}Not live{% endif %}</span>
+          <div class="management-actions">
+            {% if exam.is_published %}
+              <a class="management-public-link" href="{% url 'accounts:exam_detail' exam.pk %}" target="_blank" rel="noopener noreferrer">View on site ↗</a>
+            {% endif %}
+            <a href="{% url 'site_management:exam_pdfs' exam.pk %}">PDFs</a>
+            <a href="{% url 'site_management:exam_edit' exam.pk %}">Edit</a>
+            <a class="management-danger-link" href="{% url 'site_management:exam_delete' exam.pk %}">Delete</a>
+          </div>
+        </article>
+      {% endfor %}
+    </section>
+
+    {% if page_obj.has_other_pages %}
+      <nav class="management-pagination" aria-label="Exam pages">
+        {% if page_obj.has_previous %}
+          <a class="management-button management-button-secondary" href="?q={{ query|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a class="management-button management-button-secondary" href="?q={{ query|urlencode }}&amp;page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    <p class="management-empty management-empty-large">
+      {% if query %}No exams match “{{ query }}”.{% elif exam_kind == "upcoming" %}No upcoming exams yet. Add an exam date that is today or later.{% elif exam_kind == "recent" %}No recent exams yet. Exams with an exam date before today appear here.{% else %}No exams yet. Use “＋ Add exam” to publish your first exam announcement, then attach its PDF files.{% endif %}
+    </p>
+  {% endif %}
+{% endblock %}

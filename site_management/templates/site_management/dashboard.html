@@ -1,0 +1,53 @@
+{% extends "site_management/base.html" %}
+{% load management_extras %}
+{% block title %}Overview{% endblock %}
+{% block content %}
+  <div class="management-page-heading">
+    <div>
+      <span class="management-eyebrow">WEBSITE WORKSPACE</span>
+      <h1>Welcome, {{ request.user.username }}!</h1>
+      <p class="management-dashboard-title">Manage your website</p>
+      <p>Update public-facing content, links, and site identity. Everything below reflects live database values and changes apply to the website immediately on save.</p>
+    </div>
+    <a class="management-button management-button-primary" href="{% url 'site_management:settings' %}">Edit general settings</a>
+  </div>
+
+  {% management_nav as nav_sections %}
+
+  <section class="management-quick-actions" aria-label="Content management">
+    <h2 class="management-subheading">Content management</h2>
+    <div class="management-quick-grid">
+      {% for section in nav_sections %}
+        {% if section.key == "exams" or section.key == "upcoming-exams" or section.key == "recent-exams" or section.key == "answer-sheets" or section.key == "registration-forms" or section.key == "previous-papers" or section.key == "results" %}
+          <a class="management-quick-card" href="{{ section.url }}">
+            <strong>{{ section.label }}</strong><span>{{ section.description }}</span>
+          </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="management-quick-actions" aria-label="Website and system management">
+    <h2 class="management-subheading">Website &amp; system management</h2>
+    <div class="management-quick-grid">
+      {% for section in nav_sections %}
+        {% if section.key == "header" or section.key == "footer" or section.key == "comments" or section.key == "users" or section.key == "ai" %}
+          <a class="management-quick-card" href="{{ section.url }}">
+            <strong>{{ section.label }}</strong><span>{{ section.description }}</span>
+          </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="management-stats management-stats-rich" aria-label="Website statistics">
+    <h2 class="management-subheading">At a glance</h2>
+    <div class="management-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+      <article class="management-stat"><span>Published exams</span><strong>{{ stats.exams_published }}</strong><small>Exam announcements live on the site</small></article>
+      <article class="management-stat"><span>Published resources</span><strong>{{ stats.resources_published }}</strong><small>Answer sheets, forms, papers &amp; results</small></article>
+      <article class="management-stat"><span>Unread messages</span><strong>{{ stats.contact_unread }}</strong><small>Contact inquiries awaiting review</small></article>
+      <article class="management-stat"><span>Pending comments</span><strong style="color: #b45309;">{{ stats.pending_comments }}</strong><small>Community comments awaiting approval</small></article>
+    </div>
+  </section>
+
+{% endblock %}

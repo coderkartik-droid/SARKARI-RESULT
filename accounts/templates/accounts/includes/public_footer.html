@@ -1,0 +1,103 @@
+<footer class="portal-footer" aria-label="Site footer">
+  <div class="portal-footer-main">
+
+    {# ── Brand ────────────────────────────────────────────────── #}
+    <section class="portal-footer-about" aria-labelledby="footer-brand-name">
+      <a class="portal-brand portal-footer-brand" href="{% url 'home' %}" aria-label="{{ website_settings.site_name }} home">
+        {% if website_settings.logo_url %}
+          <img class="portal-brand-image" src="{{ website_settings.logo_url }}" alt="">
+        {% else %}
+          <span class="portal-brand-mark" aria-hidden="true">{{ website_settings.logo_text }}</span>
+        {% endif %}
+        <span class="portal-brand-copy">
+          <span class="portal-brand-name" id="footer-brand-name">{{ website_settings.site_name }}</span>
+          <span class="portal-brand-tagline">{{ website_settings.tagline }}</span>
+        </span>
+      </a>
+      {% if website_settings.footer_description %}
+        <p class="portal-footer-desc">{{ website_settings.footer_description }}</p>
+      {% else %}
+        <p class="portal-footer-desc">Your starting point for government job listings, exam results, and recruitment updates.</p>
+      {% endif %}
+      {% if website_settings.footer_contact %}
+        <p class="portal-footer-contact">{{ website_settings.footer_contact|linebreaksbr }}</p>
+      {% endif %}
+    </section>
+
+    {# ── Navigate (static + CMS section links) ───────────────── #}
+    <nav class="portal-footer-column" aria-label="Navigate">
+      <h2>Navigate</h2>
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'accounts:exams' %}">Exam</a>
+      <a href="{% url 'accounts:upcoming_exams' %}">Upcoming Exam</a>
+      <a href="{% url 'accounts:recent_exams' %}">Recent Exam</a>
+      <a href="{% url 'accounts:answer_sheets' %}">Answer Sheet</a>
+      <a href="{% url 'accounts:registration_forms' %}">Registration Form</a>
+      <a href="{% url 'accounts:previous_papers' %}">Previous Paper</a>
+      <a href="{% url 'accounts:results' %}">Result</a>
+      <a href="{% url 'tools' %}">Tools</a>
+      <a href="{% url 'contact_us' %}">Contact</a>
+    </nav>
+
+    {# ── CMS footer sections (dynamic columns from ContentSection FOOTER area) #}
+    {% for section in footer_sections %}
+      {% if section.slug != "footer-information" and section.visible_items %}
+        <nav class="portal-footer-column" aria-label="{{ section.title }}">
+          <h2>{{ section.title }}</h2>
+          {% for item in section.visible_items %}
+            {% if item.listing_url %}
+              <a href="{{ item.listing_url }}">{% if item.icon %}<span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon=item.icon %}</span>{% endif %}{{ item.label }}</a>
+            {% elif item.url %}
+              <a href="{{ item.url }}" {% if item.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>{% if item.icon %}<span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon=item.icon %}</span>{% endif %}{{ item.label }}</a>
+            {% else %}
+              <span class="portal-menu-label">{{ item.label }}</span>
+            {% endif %}
+            {% for link in item.links.all %}
+              {% if link.is_active and link.label %}
+                <a href="{{ link.url }}" {% if link.open_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                  {% if link.icon_url %}<img class="portal-content-link-icon" src="{{ link.icon_url }}" alt="" loading="lazy" style="{{ link.icon_style }}">
+                  {% elif link.icon %}<span class="portal-content-link-icon portal-icon" style="{{ link.icon_style }}">{% include "accounts/includes/portal_icon.html" with icon=link.icon %}</span>{% endif %}
+                  <span>{{ link.label }}{% if link.description %}<small>{{ link.description }}</small>{% endif %}</span>
+                </a>
+              {% endif %}
+            {% endfor %}
+          {% endfor %}
+        </nav>
+      {% endif %}
+    {% endfor %}
+
+    {# ── Information (published WebsitePages only) ─────────────── #}
+    {% if footer_pages %}
+      <nav class="portal-footer-column" aria-label="Information">
+        <h2>Information</h2>
+        {% for fp in footer_pages %}
+          <a href="{{ fp.url }}">{{ fp.label }}</a>
+        {% endfor %}
+      </nav>
+    {% endif %}
+
+  </div>
+
+  {% if footer_social_profiles %}
+    <div class="portal-footer-socials" aria-label="Follow us on social media">
+      {% for profile in footer_social_profiles %}
+        {% if profile.profile_url %}
+          <a class="portal-social-link portal-footer-social-link" href="{{ profile.profile_url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ profile.accessible_label|default:profile.display_name }}" {% if profile.icon_style %}style="{{ profile.icon_style }}"{% endif %}>
+            {% if profile.custom_icon_url %}
+              <img src="{{ profile.custom_icon_url }}" alt="" loading="lazy">
+            {% elif profile.built_in_icon or profile.platform %}
+              {% include "accounts/includes/portal_icon.html" with icon=profile.built_in_icon|default:profile.platform %}
+            {% else %}
+              <span aria-hidden="true">{{ profile.display_name|slice:":1" }}</span>
+            {% endif %}
+          </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="portal-footer-bottom">
+    <span>&copy; {% now "Y" %} {{ website_settings.footer_copyright }}. All rights reserved.</span>
+    {% if website_settings.footer_disclaimer %}<span class="portal-footer-disclaimer">{{ website_settings.footer_disclaimer }}</span>{% endif %}
+  </div>
+</footer>
