@@ -500,25 +500,58 @@ def website_page_create(request):
 
 @staff_required
 def contact_messages(request):
-    page = Paginator(
-        ContactSubmission.objects.order_by("-created_at", "-pk"),
-        25,
-    ).get_page(request.GET.get("page"))
+    queryset = ContactSubmission.objects.order_by("-created_at", "-pk")
+    filter_unread = request.GET.get("unread") == "1"
+    if filter_unread:
+        queryset = queryset.filter(is_read=False)
+    page = Paginator(queryset, 25).get_page(request.GET.get("page"))
     return render(
         request,
         "site_management/contact_messages.html",
-        {"page_obj": page},
+        {"page_obj": page, "filter_unread": filter_unread},
     )
 
 
 @staff_required
 def contact_message_detail(request, message_id):
     submission = get_object_or_404(ContactSubmission, pk=message_id)
+    if not submission.is_read:
+        submission.is_read = True
+        submission.save(update_fields=["is_read"])
     return render(
         request,
         "site_management/contact_message_detail.html",
         {"submission": submission},
     )
+
+
+@staff_required
+def contact_message_action(request, message_id, action):
+    submission = get_object_or_404(ContactSubmission, pk=message_id)
+    if action == "mark_read":
+        submission.is_read = True
+        submission.save(update_fields=["is_read"])
+        messages.success(request, f"Message from {submission.name} marked as read.")
+    elif action == "mark_unread":
+        submission.is_read = False
+        submission.save(update_fields=["is_read"])
+        messages.success(request, f"Message from {submission.name} marked as unread.")
+    elif action == "delete":
+        if request.method == "POST":
+            with transaction.atomic():
+                submission.delete()
+            messages.success(request, f"Message from {submission.name} deleted.")
+            return redirect("site_management:contact_messages")
+        return render(
+            request,
+            "site_management/confirm_delete.html",
+            {
+                "object_label": f"Message from {submission.name}",
+                "back_url": reverse("site_management:contact_message_detail", args=[message_id]),
+                "warning": "This will permanently delete this contact message.",
+            },
+        )
+    return redirect("site_management:contact_message_detail", message_id=message_id)
 
 
 @staff_required

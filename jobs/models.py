@@ -69,10 +69,14 @@ class Job(models.Model):
     )
     organization = models.CharField(
         max_length=255,
+        blank=True,
+        default="",
         help_text="e.g. Staff Selection Commission (SSC), Railway Recruitment Board (RRB)",
     )
     qualification = models.CharField(
         max_length=255,
+        blank=True,
+        default="",
         help_text="e.g. 10th Pass, 12th Pass, Any Graduate, Engineering Degree",
     )
     min_qualification = models.CharField(
@@ -202,7 +206,9 @@ class Job(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.title} ({self.organization})"
+        if self.organization:
+            return f"{self.title} ({self.organization})"
+        return self.title
 
     def clean(self):
         super().clean()

@@ -5005,6 +5005,36 @@ img.portal-content-link-icon {
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
+.public-site .portal-download-btn--external {
+  color: var(--public-blue);
+}
+
+.public-site .portal-download-btn--external:hover {
+  text-decoration: underline;
+}
+
+/* Blue link styling for additional links in exam detail pages */
+.public-site .portal-card-extra-links a {
+  color: var(--public-blue);
+  text-decoration: none;
+}
+
+.public-site .portal-card-extra-links a:hover {
+  text-decoration: underline;
+  color: var(--public-blue-dark);
+}
+
+/* Blue link styling for links within exam description text */
+.public-site .portal-detail-body a {
+  color: var(--public-blue);
+  text-decoration: none;
+}
+
+.public-site .portal-detail-body a:hover {
+  text-decoration: underline;
+  color: var(--public-blue-dark);
+}
+
 .public-site .portal-download-btn:hover,
 .public-site .portal-download-btn:focus-visible {
   border-color: #b9d8d5;

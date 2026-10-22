@@ -66,6 +66,7 @@ urlpatterns = [
     path("social-profiles/<int:profile_id>/delete/", views.social_profile_delete, name="social_profile_delete"),
     path("messages/", views.contact_messages, name="contact_messages"),
     path("messages/<int:message_id>/", views.contact_message_detail, name="contact_message_detail"),
+    path("messages/<int:message_id>/<str:action>/", views.contact_message_action, name="contact_message_action"),
     path("comments/", views.comment_moderation, name="comment_moderation"),
     path("comments/<int:comment_id>/<str:action>/", views.comment_action, name="comment_action"),
     path("ai-status/", views.ai_status, name="ai_status"),

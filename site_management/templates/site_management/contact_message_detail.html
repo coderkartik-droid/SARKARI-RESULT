@@ -11,6 +11,17 @@
       <p>Submitted {{ submission.created_at|date:"M j, Y, g:i A" }}</p>
     </div>
     <div class="management-heading-actions">
+      {% if submission.is_read %}
+        <form method="post" action="{% url 'site_management:contact_message_action' submission.pk 'mark_unread' %}">
+          {% csrf_token %}
+          <button class="management-button management-button-secondary" type="submit">Mark as unread</button>
+        </form>
+      {% else %}
+        <form method="post" action="{% url 'site_management:contact_message_action' submission.pk 'mark_read' %}">
+          {% csrf_token %}
+          <button class="management-button management-button-secondary" type="submit">Mark as read</button>
+        </form>
+      {% endif %}
       <a class="management-button management-public-link" href="{% url 'contact_us' %}" target="_blank" rel="noopener noreferrer">View contact page ↗</a>
     </div>
   </div>
@@ -23,4 +34,12 @@
       <div><dt>Message</dt><dd>{{ submission.message|linebreaksbr }}</dd></div>
     </dl>
   </article>
+
+  <div class="management-danger-zone">
+    <h3>Danger zone</h3>
+    <form method="post" action="{% url 'site_management:contact_message_action' submission.pk 'delete' %}">
+      {% csrf_token %}
+      <button class="management-button management-button-danger" type="submit">Delete this message</button>
+    </form>
+  </div>
 {% endblock %}

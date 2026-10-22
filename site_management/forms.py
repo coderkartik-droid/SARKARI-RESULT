@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.utils.text import slugify
 
 from .icons import ICON_CHOICES
 from .models import (
@@ -199,6 +200,8 @@ class ContentSectionForm(ManagementForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.required = (name == "title")
         sections = ContentSection.objects.all()
         if self.instance.pk:
             sections = sections.exclude(pk=self.instance.pk)
@@ -238,6 +241,10 @@ class ContentSectionForm(ManagementForm):
 
     def clean(self):
         cleaned = super().clean()
+        if not cleaned.get("slug"):
+            cleaned["slug"] = slugify(cleaned.get("title", ""))[:100] or "section"
+        if not cleaned.get("area"):
+            cleaned["area"] = getattr(self.instance, "area", "") or ContentSection.Area.HOMEPAGE
         if cleaned.get("area") == ContentSection.Area.TOOLS:
             existing_tools_area = ContentSection.objects.filter(
                 area=ContentSection.Area.TOOLS
@@ -372,19 +379,16 @@ class ContentItemForm(ManagementForm):
                 }:
                     continue
                 self.fields.pop(field_name, None)
-            self.fields["body"].required = False
-        else:
-            self.fields["body"].required = True
-            for fname, field in self.fields.items():
-                if fname != "body":
-                    field.required = False
+
+        for fname, field in self.fields.items():
+            field.required = (fname == "label")
 
         self.fields["body"].label = "Description"
-        self.fields["body"].help_text = "Main description; required for homepage content blocks."
-        self.fields["label"].required = False
+        self.fields["body"].help_text = "Main description (optional)."
+        self.fields["label"].required = True
         self.fields["url"].required = False
-        self.fields["label"].widget.attrs["placeholder"] = "Optional block title"
-        self.fields["body"].widget.attrs["placeholder"] = "Write the main description (required)"
+        self.fields["label"].widget.attrs["placeholder"] = "Block title (required)"
+        self.fields["body"].widget.attrs["placeholder"] = "Write the main description (optional)"
         self.fields["url"].label = "Primary link URL"
         self.fields["url"].widget.attrs["placeholder"] = "https://example.org/page or /local/path/"
         for field_name, location in {
@@ -737,7 +741,8 @@ class WebsitePageForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["description"].required = True
+        for name, field in self.fields.items():
+            field.required = (name == "title")
         for field in self.fields.values():
             field.widget.attrs.setdefault("class", "management-input")
         add_link_test_attributes(self.fields)
@@ -825,10 +830,7 @@ class WebsitePageForm(forms.ModelForm):
         ]
 
     def clean(self):
-        cleaned = super().clean()
-        if not (cleaned.get("description") or "").strip():
-            self.add_error("description", "Main page content is required.")
-        return cleaned
+        return super().clean()
 
 
 class WebsitePageCreateForm(WebsitePageForm):
@@ -842,6 +844,7 @@ class WebsitePageCreateForm(WebsitePageForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["page_type"].required = False
         existing_types = set(WebsitePage.objects.values_list("page_type", flat=True))
         self.fields["page_type"].choices = [
             ("", "Select a public page"),
@@ -854,7 +857,13 @@ class WebsitePageCreateForm(WebsitePageForm):
         self.fields["page_type"].widget.attrs["class"] = "management-input"
 
     def clean_page_type(self):
-        page_type = self.cleaned_data["page_type"]
+        page_type = self.cleaned_data.get("page_type")
+        if not page_type:
+            existing_types = set(WebsitePage.objects.values_list("page_type", flat=True))
+            for choice in WebsitePage.PageType.choices:
+                if choice[0] not in existing_types:
+                    return choice[0]
+            raise forms.ValidationError("All supported public pages are already configured.")
         if WebsitePage.objects.filter(page_type=page_type).exists():
             raise forms.ValidationError("This public page is already configured.")
         return page_type
@@ -1217,6 +1226,8 @@ class ExamForm(ManagementForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for name, field in self.fields.items():
+            field.required = (name == "title")
+        for name, field in self.fields.items():
             detail = field.help_text or f"Controls this exam's {name.replace('_', ' ')}."
             field.help_text = PUBLIC_EXAM_LOCATION + detail
         self.fields["title"].widget.attrs.setdefault(
@@ -1310,6 +1321,8 @@ class ExamResourceForm(ManagementForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.required = (name == "title")
         if "exam" in self.fields:
             self.fields["exam"].queryset = Exam.objects.order_by(
                 "sort_order", "title"
@@ -1319,12 +1332,9 @@ class ExamResourceForm(ManagementForm):
             if date_field in self.fields:
                 self.fields[date_field].widget = forms.DateInput(attrs={"type": "date"})
         if "pdf_file" in self.fields:
-            if self.instance.pk or not self.pdf_required:
-                self.fields["pdf_file"].required = False
+            self.fields["pdf_file"].required = False
             self.fields["pdf_file"].label = self.pdf_label
-            self.fields["pdf_file"].help_text = (
-                self.required_pdf_help if self.pdf_required else self.optional_pdf_help
-            )
+            self.fields["pdf_file"].help_text = self.optional_pdf_help
             self.fields["pdf_file"].widget.attrs["accept"] = ".pdf,application/pdf"
             self.fields["pdf_file"].widget.attrs["data-test-link"] = "true"
         for name, field in self.fields.items():
@@ -1382,7 +1392,7 @@ class AnswerSheetForm(ExamResourceForm):
     """Create or edit a downloadable answer-sheet PDF."""
 
     location_prefix = ANSWER_SHEET_PUBLIC_LOCATION
-    pdf_required = True
+    pdf_required = False
     pdf_required_message = "Upload the answer-sheet PDF."
     groups = (
         (
@@ -1489,22 +1499,14 @@ class RegistrationResourceForm(ExamResourceForm):
         }
 
     def _require_pdf_or_url(self, cleaned):
-        has_pdf = bool(cleaned.get("pdf_file")) or bool(
-            self.instance.pk and self.instance.pdf_file
-        )
-        has_url = bool((cleaned.get("official_url") or "").strip())
-        if not has_pdf and not has_url:
-            self.add_error(
-                "official_url",
-                "Provide an application PDF, an official application URL, or both.",
-            )
+        pass
 
 
 class PreviousPaperForm(ExamResourceForm):
     """Create or edit a previous-year question paper (PDF required)."""
 
     location_prefix = PREVIOUS_PAPER_PUBLIC_LOCATION
-    pdf_required = True
+    pdf_required = False
     pdf_required_message = "Upload the paper PDF."
     groups = (
         (
@@ -1622,15 +1624,7 @@ class ResultForm(ExamResourceForm):
         }
 
     def _require_pdf_or_url(self, cleaned):
-        has_pdf = bool(cleaned.get("pdf_file")) or bool(
-            self.instance.pk and self.instance.pdf_file
-        )
-        has_url = bool((cleaned.get("official_url") or "").strip())
-        if not has_pdf and not has_url:
-            self.add_error(
-                "official_url",
-                "Provide an official result URL, a result PDF, or both.",
-            )
+        pass
 
 
 class LatestJobForm(ExamResourceForm):
@@ -1695,13 +1689,5 @@ class LatestJobForm(ExamResourceForm):
             self.fields["image"].widget.attrs["data-test-link"] = "true"
 
     def _require_pdf_or_url(self, cleaned):
-        has_pdf = bool(cleaned.get("pdf_file")) or bool(
-            self.instance.pk and self.instance.pdf_file
-        )
-        has_url = bool((cleaned.get("official_url") or "").strip())
-        if not has_pdf and not has_url:
-            self.add_error(
-                "official_url",
-                "Provide an official job URL, a notification PDF, or both.",
-            )
+        pass
 

@@ -241,9 +241,9 @@ class ContentSection(models.Model):
         TOOLS = "tools", "Tools landing page"
         FOOTER = "footer", "Footer"
 
-    area = models.CharField(max_length=20, choices=Area.choices)
+    area = models.CharField(max_length=20, choices=Area.choices, blank=True, default=Area.HOMEPAGE)
     title = models.CharField(max_length=120)
-    slug = models.SlugField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True, blank=True)
     description = models.TextField(blank=True)
     icon = models.CharField(
         "icon",
@@ -270,6 +270,19 @@ class ContentSection(models.Model):
 
     def __str__(self):
         return f"{self.get_area_display()}: {self.title}"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.title)[:90] or "section"
+            slug = base_slug
+            counter = 1
+            while ContentSection.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        if not self.area:
+            self.area = self.Area.HOMEPAGE
+        super().save(*args, **kwargs)
 
 
 class ContentItem(models.Model):
@@ -834,7 +847,9 @@ class WebsitePage(models.Model):
         help_text="Optional subtitle or heading below the title."
     )
     description = models.TextField(
-        help_text="Main page content (required)."
+        blank=True,
+        default="",
+        help_text="Main page content (optional)."
     )
     image = models.ImageField(
         upload_to="cms/website_pages/",
@@ -1024,6 +1039,7 @@ class Exam(models.Model):
         max_length=20,
         choices=Status.choices,
         default=Status.DRAFT,
+        blank=True,
         help_text="Publication status: draft or published."
     )
     publish_at = models.DateTimeField(
@@ -1471,8 +1487,9 @@ class AnswerSheet(PublishedExamResource):
     )
     pdf_file = models.FileField(
         upload_to=SafePDFUploadTo("cms/answer_sheets/"),
+        blank=True,
         validators=[validate_content_pdf],
-        help_text="Answer-sheet PDF (required). PDF only, maximum size configured with CMS_MAX_PDF_SIZE (default 20 MB).",
+        help_text="Answer-sheet PDF (optional). PDF only, maximum size configured with CMS_MAX_PDF_SIZE (default 20 MB).",
     )
 
     class Meta:
@@ -1518,15 +1535,6 @@ class RegistrationResource(PublishedExamResource):
         verbose_name = "Registration form"
         verbose_name_plural = "Registration forms"
 
-    def clean(self):
-        super().clean()
-        has_pdf = bool(self.pdf_file and self.pdf_file.name)
-        has_url = bool((self.official_url or "").strip())
-        if not has_pdf and not has_url:
-            raise ValidationError(
-                "Provide an application PDF, an official application URL, or both."
-            )
-
     def __str__(self):
         return self.title
 
@@ -1549,8 +1557,9 @@ class PreviousPaper(PublishedExamResource):
     )
     pdf_file = models.FileField(
         upload_to=SafePDFUploadTo("cms/previous_papers/"),
+        blank=True,
         validators=[validate_content_pdf],
-        help_text="Paper PDF (required). PDF only, maximum size configured with CMS_MAX_PDF_SIZE (default 20 MB).",
+        help_text="Paper PDF (optional). PDF only, maximum size configured with CMS_MAX_PDF_SIZE (default 20 MB).",
     )
 
     class Meta:
@@ -1590,15 +1599,6 @@ class Result(PublishedExamResource):
         ordering = ["sort_order", "-created_at"]
         verbose_name = "Result"
         verbose_name_plural = "Results"
-
-    def clean(self):
-        super().clean()
-        has_pdf = bool(self.pdf_file and self.pdf_file.name)
-        has_url = bool((self.official_url or "").strip())
-        if not has_pdf and not has_url:
-            raise ValidationError(
-                "Provide an official result URL, a result PDF, or both."
-            )
 
     def __str__(self):
         return self.title
@@ -1659,15 +1659,6 @@ class LatestJob(PublishedExamResource):
         ordering = ["sort_order", "-created_at"]
         verbose_name = "Latest job"
         verbose_name_plural = "Latest jobs"
-
-    def clean(self):
-        super().clean()
-        has_pdf = bool(self.pdf_file and self.pdf_file.name)
-        has_url = bool((self.official_url or "").strip())
-        if not has_pdf and not has_url:
-            raise ValidationError(
-                "Provide an official job URL, a notification PDF, or both."
-            )
 
     def save(self, *args, **kwargs):
         previous_image = None

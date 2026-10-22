@@ -16,6 +16,8 @@ class JobAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.required = (name == "title")
         for field_name in (
             "official_notification_url",
             "application_url",

@@ -889,7 +889,7 @@ def exam_detail(request, pk):
         {
             "exam": exam,
             "pdfs": list(exam.pdfs.all()),
-            "exam_links": list(exam.links.all()),
+            "exam_links": [link for link in exam.links.all() if link.is_active],
             "visible_links": [],
             "related_exams": related_exams,
             "exam_eligibility": exam_eligibility,
