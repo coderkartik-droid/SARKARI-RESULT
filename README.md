@@ -153,15 +153,17 @@ To enable Google sign-in:
    - Under **Authorized JavaScript origins**, add:
      - `http://localhost:8000`
      - `http://127.0.0.1:8000`
-   - Under **Authorized redirect URIs**, add the callback URL:
+   - Under **Authorized redirect URIs**, add BOTH of these URLs:
      - `http://localhost:8000/accounts/google/login/callback/`
      - `http://127.0.0.1:8000/accounts/google/login/callback/`
 5. Copy your **Client ID** and **Client Secret**, and paste them into your private `.env` file:
 
 ```dotenv
-GOOGLE_OAUTH_CLIENT_ID="your-client-id.apps.googleusercontent.com"
-GOOGLE_OAUTH_CLIENT_SECRET="your-client-secret"
+GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="your-client-secret"
 ```
+
+**CRITICAL:** The redirect URIs MUST be configured correctly in Google Cloud Console. If you see a white screen at `/gsi/transform`, it means the redirect URIs are missing or incorrect. Add both `localhost:8000` and `127.0.0.1:8000` variants to avoid this issue.
 
 6. Restart your Django development server. Google sign-in is now live.
 

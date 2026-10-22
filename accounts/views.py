@@ -1,3 +1,4 @@
+import logging
 import re
 from types import SimpleNamespace
 from urllib.parse import urlsplit
@@ -26,6 +27,8 @@ from django.views.decorators.http import require_POST
 from .forms import ProfileForm, SignupForm
 from .login_throttle import clear_failures, is_locked, record_failure
 from .models import EmailUser
+
+logger = logging.getLogger(__name__)
 from site_management.forms import ContactMessageForm
 from site_management.models import (
     AnswerSheet,
@@ -48,7 +51,7 @@ from site_management.models import (
 
 GENERIC_LOGIN_ERROR = "Invalid username or email, or password."
 HOMEPAGE_ITEM_LIMIT = 2
-HOMEPAGE_EXAM_LIMIT = 4
+HOMEPAGE_EXAM_LIMIT = 2
 SECTION_PAGE_SIZE = 20
 FOOTER_INFO_PAGE_ROUTES = (
     (WebsitePage.PageType.ABOUT_US, "About Us", "about_us"),
@@ -1155,13 +1158,25 @@ def google_login_view(request):
     if not is_google_oauth_configured():
         messages.error(
             request,
-            "Google sign-in is not configured yet. Set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET in .env.",
+            "Google sign-in is not configured yet. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env. "
+            "Also ensure authorized redirect URIs are configured in Google Cloud Console.",
         )
         return redirect("accounts:login")
 
     from allauth.socialaccount.providers.google.views import oauth2_login
 
-    return oauth2_login(request)
+    try:
+        return oauth2_login(request)
+    except Exception as exc:
+        logger.error("Google OAuth login failed: %s", exc, exc_info=True)
+        messages.error(
+            request,
+            "Google sign-in failed. This usually means the redirect URI is not configured "
+            "in Google Cloud Console. Ensure the following URIs are authorized: "
+            "http://localhost:8000/accounts/google/login/callback/ and "
+            "http://127.0.0.1:8000/accounts/google/login/callback/"
+        )
+        return redirect("accounts:login")
 
 
 @require_POST

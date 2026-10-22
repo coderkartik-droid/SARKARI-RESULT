@@ -70,6 +70,47 @@
       </div>
     </div>
 
+    {% if provider_models %}
+    <div style="margin-top: 18px;">
+      <h3 style="font-size: 14px; margin: 0 0 12px; color: var(--management-muted); text-transform: uppercase; font-weight: 700;">Configured Models for {{ provider|title }}</h3>
+      <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--management-line); border-radius: 8px; background: #ffffff;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--management-line); background: #f8fafc; position: sticky; top: 0;">
+              <th style="padding: 10px 12px; text-align: left;">Model ID</th>
+              <th style="padding: 10px 12px; text-align: left;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for model in provider_models %}
+            <tr style="border-bottom: 1px solid var(--management-line);">
+              <td style="padding: 10px 12px; font-family: monospace;">{{ model.model }}</td>
+              <td style="padding: 10px 12px;">
+                {% if model.configured %}
+                  <span style="color: #047857; font-weight: 600;">✓ Configured</span>
+                {% else %}
+                  <span style="color: #b91c1c; font-weight: 600;">✗ Missing API key</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if config_errors %}
+    <div style="margin-top: 18px; padding: 12px 16px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; font-size: 12px; color: #991b1b;">
+      <strong>Configuration Warnings:</strong>
+      <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+        {% for error in config_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
     <div style="margin-top: 18px; padding: 12px 16px; background: #f1f5f9; border-radius: 8px; font-size: 12px; color: #475569; line-height: 1.5;">
       <strong>Note on Availability:</strong> The status above verifies that local environment settings are configured. Live API connectivity to {{ provider|title }} servers occurs securely on-demand when visitors chat with the assistant on the website.
     </div>

@@ -252,6 +252,8 @@
         "(obtain it from Google Cloud Console > APIs & Services > Credentials). " +
         "Falling back to the classic OAuth redirect button."
       );
+      setStatus("Google sign-in requires configuration. Use the button below.", "error");
+      setClassicFallbackVisible(true);
       return; // leave the classic redirect form visible instead
     }
 

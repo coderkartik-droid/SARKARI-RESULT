@@ -1427,19 +1427,26 @@ def comment_action(request, comment_id, action):
 @staff_required
 def ai_status(request):
     """Read-only diagnostics and daily request metrics for the AI Assistant."""
+    from ai_assistant.services.model_config import get_model_configuration
+
     provider = getattr(settings, "AI_PROVIDER", "gemini")
     normalized_provider = provider.strip().lower() if isinstance(provider, str) else "gemini"
-    if normalized_provider == "openrouter":
-        model_name = getattr(settings, "OPENROUTER_MODEL", "nvidia/nemotron-3-ultra-550b-a55b-20260604")
-        raw_key = getattr(settings, "OPENROUTER_API_KEY", "")
-        placeholder = getattr(settings, "OPENROUTER_PLACEHOLDER_KEY", "PASTE_YOUR_OPENROUTER_API_KEY_HERE")
-    else:
-        model_name = getattr(settings, "GEMINI_MODEL", "gemini-3.8-flash")
-        raw_key = getattr(settings, "GEMINI_API_KEY", "")
-        placeholder = getattr(settings, "GEMINI_PLACEHOLDER_KEY", "PASTE_YOUR_GEMINI_API_KEY_HERE")
+    
+    # Get all configured models from the registry
+    all_models, config_errors = get_model_configuration()
+    
+    # Filter models for the current provider
+    provider_models = [m for m in all_models if m["provider"] == normalized_provider]
+    
+    # Determine if provider has any configured API key
+    has_api_key = any(m["configured"] for m in provider_models)
+    
+    # Get the first configured model as the "current" one for display
+    current_model = provider_models[0] if provider_models else None
+    model_name = current_model["model"] if current_model else getattr(settings, "GEMINI_MODEL", "gemini-3.8-flash")
+    
     enabled = bool(getattr(settings, "AI_ENABLED", False))
     rate_limit = getattr(settings, "AI_RATE_LIMIT_PER_MINUTE", 15)
-    has_api_key = bool(raw_key and raw_key != placeholder)
 
     today = timezone.localdate()
     today_stats = AIDailyUsage.objects.filter(usage_date=today).aggregate(
@@ -1469,6 +1476,9 @@ def ai_status(request):
             "today_requests": today_requests,
             "today_users": today_users,
             "recent_usage": recent_usage,
+            "provider_models": provider_models,
+            "all_models": all_models,
+            "config_errors": config_errors,
         },
     )
 
