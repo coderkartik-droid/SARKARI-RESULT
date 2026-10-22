@@ -111,4 +111,15 @@ if (mobileMenuToggle && mobileMenuPanel) {
       mobileMenuToggle.focus();
     }
   });
+
+  // CSS hides the panel above the mobile breakpoint, but the body scroll-lock
+  // set while the menu was open would otherwise stay stuck if the viewport is
+  // widened (e.g. phone rotation), leaving the page unscrollable.
+  const desktopQuery = window.matchMedia("(min-width: 701px)");
+  desktopQuery.addEventListener("change", (event) => {
+    if (!event.matches) return;
+    mobileMenuToggle.setAttribute("aria-expanded", "false");
+    mobileMenuPanel.hidden = true;
+    document.body.style.overflow = "";
+  });
 }

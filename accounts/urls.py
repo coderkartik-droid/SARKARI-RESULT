@@ -27,6 +27,18 @@ urlpatterns = [
     path("exams/recent/", views.recent_exams_list, name="recent_exams"),
     path("exams/<int:pk>/", views.exam_detail, name="exam_detail"),
     path(
+        "latest-jobs/",
+        views.resource_section_list,
+        {"section": "latest-jobs"},
+        name="latest_jobs",
+    ),
+    path(
+        "latest-jobs/<int:pk>/",
+        views.resource_section_detail,
+        {"section": "latest-jobs"},
+        name="latest_job_detail",
+    ),
+    path(
         "answer-sheets/",
         views.resource_section_list,
         {"section": "answer-sheets"},

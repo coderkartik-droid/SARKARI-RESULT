@@ -83,12 +83,21 @@
         {% endif %}
 
         <section class="portal-quick-access" aria-label="Quick access">
+          {% url 'accounts:latest_jobs' as quick_latest_jobs_url %}
           {% url 'accounts:exams' as quick_exams_url %}
           {% url 'accounts:answer_sheets' as quick_answer_sheets_url %}
           {% url 'accounts:registration_forms' as quick_registration_url %}
           {% url 'tools' as quick_tools_url %}
           {% url 'contact_us' as quick_contact_url %}
           {% url 'accounts:results' as quick_results_url %}
+          <a class="portal-quick-card" href="{{ quick_latest_jobs_url }}">
+            <span class="portal-icon portal-quick-icon">{% include "accounts/includes/portal_icon.html" with icon="briefcase" %}</span>
+            <span class="portal-quick-copy">
+              <strong>Latest Jobs</strong>
+              <span>Newest government job openings with official notifications.</span>
+            </span>
+            <span class="portal-quick-arrow" aria-hidden="true">↗</span>
+          </a>
           <a class="portal-quick-card" href="{{ quick_exams_url }}">
             <span class="portal-icon portal-quick-icon">{% include "accounts/includes/portal_icon.html" with icon="graduation-cap" %}</span>
             <span class="portal-quick-copy">
@@ -138,6 +147,8 @@
             <span class="portal-quick-arrow" aria-hidden="true">↗</span>
           </a>
         </section>
+
+        {% if latest_jobs_block %}{% include "accounts/includes/home_content_block.html" with block=latest_jobs_block %}{% endif %}
 
         {% for block in exam_blocks %}
           <section class="portal-content-section" id="{{ block.id }}" aria-labelledby="{{ block.id }}-title">
@@ -259,9 +270,12 @@
           </section>
         {% endfor %}
 
-        {% if exam_blocks or resource_blocks %}<nav class="portal-jump-nav" aria-label="Jump to a section on this page">
+        {% if latest_jobs_block or exam_blocks or resource_blocks %}<nav class="portal-jump-nav" aria-label="Jump to a section on this page">
           <span class="portal-jump-label">On this page</span>
           <ul class="portal-jump-list">
+            {% if latest_jobs_block %}
+              <li><a class="portal-jump-link" href="#{{ latest_jobs_block.id }}">{{ latest_jobs_block.title }}</a></li>
+            {% endif %}
             {% for block in exam_blocks %}
               <li><a class="portal-jump-link" href="#{{ block.id }}">{{ block.title }}</a></li>
             {% endfor %}

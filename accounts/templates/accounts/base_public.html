@@ -29,9 +29,6 @@
           </span>
         </a>
         <div class="portal-header-actions">
-          <button class="portal-mobile-menu-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu-panel">
-            <span class="portal-hamburger-icon"></span>
-          </button>
           <a class="portal-eligibility-header-btn" href="{% url 'jobs:eligibility_check' %}">
             <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="badge-check" %}</span>
             <span>Check Eligibility</span>
@@ -48,7 +45,7 @@
             </form>
           {% else %}
             <a class="portal-login-link" href="{% url 'accounts:login' %}">Log in</a>
-            <a class="portal-signup-link" href="{% url 'accounts:signup' %}">Create account</a>
+            <a class="portal-signup-link" href="{% url 'accounts:signup' %}">Sign Up</a>
           {% endif %}
           {% if header_social_profiles %}
             <div class="portal-social-links" aria-label="Social media links">
@@ -76,6 +73,7 @@
       >
         <div class="portal-menu-links">
           {% url 'home' as home_url %}
+          {% url 'accounts:latest_jobs' as latest_jobs_url %}
           {% url 'tools' as tools_url %}
           {% url 'accounts:results' as results_url %}
           {% url 'accounts:answer_sheets' as answer_sheets_url %}
@@ -88,6 +86,10 @@
           <a href="{{ home_url }}"{% if request.path == home_url %} aria-current="page"{% endif %}>
             <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="home" %}</span>
             Home
+          </a>
+          <a href="{{ latest_jobs_url }}"{% if request.path == latest_jobs_url %} aria-current="page"{% endif %}>
+            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="briefcase" %}</span>
+            Latest Jobs
           </a>
           <a href="{{ exams_url }}"{% if request.path == exams_url %} aria-current="page"{% endif %}>
             <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="graduation-cap" %}</span>
@@ -128,70 +130,6 @@
         </div>
       </nav>
       
-      <!-- Mobile Menu Panel -->
-      <div class="portal-mobile-menu-panel" id="mobile-menu-panel" hidden>
-        <nav class="portal-mobile-nav" aria-label="Mobile navigation">
-          {% url 'home' as home_url %}
-          {% url 'tools' as tools_url %}
-          {% url 'accounts:results' as results_url %}
-          {% url 'accounts:answer_sheets' as answer_sheets_url %}
-          {% url 'accounts:registration_forms' as registration_forms_url %}
-          {% url 'accounts:previous_papers' as previous_papers_url %}
-          {% url 'accounts:exams' as exams_url %}
-          {% url 'accounts:upcoming_exams' as upcoming_exams_url %}
-          {% url 'accounts:recent_exams' as recent_exams_url %}
-          {% url 'contact_us' as contact_url %}
-          <a href="{{ home_url }}" class="portal-mobile-nav-link">
-            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="home" %}</span>
-            Home
-          </a>
-          <a href="{{ exams_url }}" class="portal-mobile-nav-link">
-            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="graduation-cap" %}</span>
-            Exam
-          </a>
-          <a href="{{ upcoming_exams_url }}" class="portal-mobile-nav-link">
-            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="calendar" %}</span>
-            Upcoming Exam
-          </a>
-          <a href="{{ recent_exams_url }}" class="portal-mobile-nav-link">
-            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="clock" %}</span>
-            Recent Exam
-          </a>
-          <a href="{{ answer_sheets_url }}" class="portal-mobile-nav-link">
-            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="file-search" %}</span>
-            Answer Sheet
-          </a>
-          <a href="{{ registration_forms_url }}" class="portal-mobile-nav-link">
-            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="contact" %}</span>
-            Registration Form
-          </a>
-          <a href="{{ previous_papers_url }}" class="portal-mobile-nav-link">
-            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="paper" %}</span>
-            Previous Paper
-          </a>
-          <a href="{{ results_url }}" class="portal-mobile-nav-link">
-            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="award" %}</span>
-            Result
-          </a>
-          <a href="{{ tools_url }}" class="portal-mobile-nav-link">
-            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="tools" %}</span>
-            Tools
-          </a>
-          <a href="{{ contact_url }}" class="portal-mobile-nav-link">
-            <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="messages-square" %}</span>
-            Contact
-          </a>
-          {% if request.user.is_authenticated %}
-            <a href="{% url 'accounts:dashboard' %}" class="portal-mobile-nav-link">
-              <span class="portal-nav-icon">{% include "accounts/includes/portal_icon.html" with icon="user" %}</span>
-              My account
-            </a>
-          {% else %}
-            <a href="{% url 'accounts:login' %}" class="portal-mobile-nav-link">Log in</a>
-            <a href="{% url 'accounts:signup' %}" class="portal-mobile-nav-link">Create account</a>
-          {% endif %}
-        </nav>
-      </div>
     </header>
     <main id="main-content" class="public-main">
       {% block content %}{% endblock %}

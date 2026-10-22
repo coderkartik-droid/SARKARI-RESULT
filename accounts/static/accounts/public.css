@@ -3599,7 +3599,8 @@ img.portal-content-link-icon {
 }
 
 .public-header .portal-menu {
-  border-color: var(--public-line);
+  border-color: var(--public-line-blue);
+  background: #f8fbff;
 }
 
 .public-header .portal-menu-links > a,
@@ -3702,9 +3703,10 @@ img.portal-content-link-icon {
   border-radius: var(--public-radius-lg);
   padding: clamp(38px, 6vw, 68px) clamp(24px, 5vw, 64px);
   background:
-    radial-gradient(circle at 88% 16%, rgba(92, 187, 177, .21), transparent 19rem),
-    linear-gradient(125deg, #1c385b 0%, #203f67 58%, #284d70 100%);
-  box-shadow: 0 18px 42px rgba(27, 53, 86, .16);
+    radial-gradient(circle at 88% 14%, rgba(18, 165, 184, .3), transparent 20rem),
+    radial-gradient(circle at 4% 100%, rgba(109, 91, 208, .22), transparent 22rem),
+    linear-gradient(125deg, #0c2c5e 0%, #14498f 54%, #1c5cb4 100%);
+  box-shadow: 0 18px 42px rgba(12, 44, 94, .3);
 }
 
 .public-site .portal-hero::after {
@@ -3936,6 +3938,35 @@ img.portal-content-link-icon {
   padding: 20px;
 }
 
+/* Uploaded photo shown at the top of a listing or homepage card. */
+.public-site .portal-listing-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 0 0 14px;
+  border: 1px solid var(--public-line);
+  border-radius: 12px;
+  object-fit: cover;
+  background: #eef3f7;
+}
+
+/* Uploaded photo shown on an individual resource detail page. */
+.public-site .portal-detail-photo-wrap {
+  margin: 0 0 22px;
+  border: 1px solid var(--public-line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f7fafc;
+}
+
+.public-site .portal-detail-photo {
+  display: block;
+  width: 100%;
+  max-height: 460px;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
 .public-site .portal-quick-card:hover,
 .public-site .portal-listing-card:hover,
 .public-site .tools-card--link:hover {
@@ -4011,7 +4042,7 @@ img.portal-content-link-icon {
 }
 
 .public-site .portal-section-list .portal-content-section {
-  border-top-color: #dce5ed;
+  border-top-color: var(--public-line-blue);
   padding-top: 30px;
   margin-bottom: 36px;
 }
@@ -5118,4 +5149,628 @@ img.portal-content-link-icon {
   color: #8b5cf6;
   font-size: 12px;
   font-weight: 700;
+}
+
+/* =====================================================================
+   Mobile UI polish — phones / small tablets only (desktop unchanged).
+   Addresses: a single clean header row with a prominent Sign Up action
+   (the hamburger was removed), the header nav strip as the only
+   navigation, and compact, consistent content cards.
+   ===================================================================== */
+
+/* 1 — One clean header row: logo + compact actions (no hamburger). */
+@media (max-width: 760px) {
+  .public-header .portal-header-main {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .public-header .portal-brand {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 9px;
+  }
+
+  .public-header .portal-brand-copy {
+    min-width: 0;
+  }
+
+  .public-header .portal-brand-name {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 15px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .public-header .portal-header-actions {
+    width: auto;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  /* Compact header controls, all sharing one primary accent. */
+  .public-header .portal-header-actions .portal-eligibility-header-btn {
+    order: 0;
+    flex: 0 0 auto;
+    min-height: 36px;
+    border-radius: 9px;
+    padding: 7px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .public-header .portal-header-actions .portal-login-link,
+  .public-header .portal-header-actions .portal-logout-link {
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 7px 6px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  /* Sign Up — the prominent mobile action button. */
+  .public-header .portal-header-actions .portal-signup-link {
+    flex: 0 0 auto;
+    min-height: 36px;
+    border-radius: 9px;
+    padding: 7px 13px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+}
+
+/* 2 — The header nav strip is now the only navigation (the hamburger
+   drawer was removed), so keep it visible and compact on phones. */
+@media (max-width: 700px) {
+  .public-header .portal-menu {
+    margin: 10px 0 6px;
+    border-radius: 10px;
+  }
+
+  .public-header .portal-menu-links {
+    padding: 0 6px;
+  }
+
+  .public-header .portal-menu-links > a,
+  .public-header .portal-menu-label {
+    min-height: 42px;
+    padding: 0 10px;
+    font-size: 12.5px;
+  }
+}
+
+/* 3 — Compact, consistent content blocks (Exam / Answer Sheet / Quick
+   access) with grids that adapt to the available width. */
+@media (max-width: 768px) {
+  .public-site .portal-quick-access {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-block: 14px 22px;
+  }
+
+  .public-site .portal-quick-card {
+    min-height: 0;
+    gap: 9px;
+    padding: 12px 11px;
+  }
+
+  .public-site .portal-quick-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
+
+  .public-site .portal-icon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .public-site .portal-quick-copy strong {
+    font-size: 14px;
+  }
+
+  .public-site .portal-quick-copy > span {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .public-site .portal-listing-grid,
+  .public-site .portal-listing-grid-page {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
+  }
+
+  .public-site .portal-listing-card {
+    min-height: 0;
+    padding: 13px 13px 11px;
+  }
+
+  .public-site .portal-card-main h3 {
+    margin-bottom: 6px;
+    font-size: 15.5px;
+    line-height: 1.35;
+  }
+
+  .public-site .portal-listing-topline {
+    margin-bottom: 7px;
+  }
+
+  .public-site .portal-listing-photo {
+    margin-bottom: 10px;
+    border-radius: 10px;
+  }
+
+  .public-site .portal-list-detail-link,
+  .public-site .portal-hand-link {
+    font-size: 12.5px;
+  }
+
+  .public-site .portal-card-extra-links {
+    gap: 4px;
+    padding: 7px 10px 10px;
+  }
+
+  .public-site .portal-content-image-box {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 9px;
+    border-radius: 10px;
+  }
+
+  .public-site .portal-content-image {
+    width: 48px;
+    height: 48px;
+  }
+
+  .public-site .portal-section-list .portal-content-section {
+    padding-top: 20px;
+    margin-bottom: 24px;
+  }
+
+  .public-site .portal-section-heading {
+    margin-bottom: 14px;
+  }
+
+  .public-site .portal-section-heading h2 {
+    font-size: clamp(19px, 5vw, 24px);
+  }
+
+  .public-site .portal-section-heading > div > p:last-child {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* Keep long titles from widening a card past the screen. */
+  .public-site .portal-listing-card,
+  .public-site .portal-quick-card {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Header actions — primary "Sign Up" plus a teal-accented outline action. */
+.public-header .portal-signup-link,
+.public-header .portal-signup-link:hover {
+  border: 1px solid var(--public-blue);
+  color: #fff;
+  background: var(--public-blue);
+  box-shadow: 0 4px 12px rgba(20, 73, 143, .28);
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.public-header .portal-signup-link:hover {
+  border-color: var(--public-blue-dark);
+  background: var(--public-blue-dark);
+  box-shadow: 0 6px 16px rgba(20, 73, 143, .34);
+}
+
+.public-header .portal-eligibility-header-btn {
+  border: 1px solid var(--public-line-blue);
+  color: var(--public-blue);
+  background: #fff;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.public-header .portal-eligibility-header-btn:hover {
+  border-color: var(--public-teal);
+  color: #fff;
+  background: var(--public-teal);
+  box-shadow: 0 4px 12px rgba(15, 141, 134, .24);
+}
+
+/* =====================================================================
+   Enriched palette + sectioned footer
+   (appended last so these rules win the cascade)
+   ===================================================================== */
+
+/* ── 1. Coordinated design tokens ─────────────────────────────────── */
+:root {
+  /* Primary (deep professional blue) + secondary (vivid royal blue) */
+  --public-blue: #14498f;
+  --public-blue-dark: #0e3468;
+  --public-blue-light: #2a6bc4;
+  --public-royal: #2f5fd0;
+  /* Accents (rich teal / cyan + subtle indigo / violet) */
+  --public-teal: #0f8d86;
+  --public-teal-dark: #0b6f6a;
+  --public-teal-light: #e2f5f3;
+  --public-cyan: #12a5b8;
+  --public-indigo: #4149b0;
+  --public-violet: #6d5bd0;
+  /* Surfaces */
+  --public-paper: #ffffff;
+  --public-canvas: #eef3fa;
+  --public-mist: #f8fbfe;
+  --public-tint: #eef4fc;
+  /* Text */
+  --public-ink: #0f2544;
+  --public-muted: #506180;
+  --public-soft: #6c7d96;
+  /* Borders */
+  --public-line: #d3e0ee;
+  --public-line-soft: rgba(20, 73, 143, .14);
+  --public-line-blue: rgba(20, 73, 143, .28);
+  --public-line-teal: rgba(15, 141, 134, .32);
+  --public-line-indigo: rgba(65, 73, 176, .24);
+  /* Depth + focus */
+  --public-shadow: 0 3px 14px rgba(15, 37, 68, .08);
+  --public-shadow-hover: 0 12px 28px rgba(15, 37, 68, .14);
+  --public-focus: #6fc3bd;
+  --public-saffron: var(--public-teal);
+  --public-saffron-light: var(--public-teal-dark);
+}
+
+/* ── 2. Header & navigation ───────────────────────────────────────── */
+.public-header {
+  border-color: var(--public-line);
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 6px 22px rgba(15, 37, 68, .07);
+}
+
+.public-header .portal-brand-mark {
+  color: #fff;
+  background: linear-gradient(150deg, var(--public-blue-light), var(--public-blue-dark));
+  box-shadow: 0 4px 12px rgba(20, 73, 143, .3);
+}
+
+.public-header .portal-brand-name {
+  color: var(--public-ink);
+}
+
+.public-header .portal-brand-tagline {
+  color: var(--public-soft);
+}
+
+.public-header .portal-menu-links > a {
+  border-radius: 8px;
+  color: #33475f;
+  transition: color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.public-header .portal-menu-links > a:hover,
+.public-header .portal-menu-links > a:focus-visible,
+.public-header .portal-menu-links > a[aria-current="page"] {
+  border-bottom-color: var(--public-teal);
+  color: var(--public-blue);
+  background: var(--public-tint);
+  box-shadow: inset 0 0 0 1px var(--public-line-blue);
+}
+
+/* ── 3. Headings, form controls & primary actions ─────────────────── */
+.public-site .portal-eyebrow,
+.public-site .portal-section-kicker,
+.public-site .portal-menu-kicker {
+  color: var(--public-teal);
+  font-weight: 700;
+  letter-spacing: .1em;
+}
+
+.public-site .portal-eyebrow span {
+  background: var(--public-teal);
+}
+
+/* Section titles get a restrained teal rule instead of heavy decoration. */
+.public-site .portal-section-heading h2 {
+  color: var(--public-ink);
+  letter-spacing: -.025em;
+}
+
+.public-site .portal-section-heading h2::after {
+  display: block;
+  width: 46px;
+  height: 3px;
+  margin-top: 10px;
+  border-radius: 999px;
+  background: var(--public-teal);
+  content: "";
+}
+
+.public-site .portal-section-heading > div > p:last-child {
+  color: var(--public-muted);
+}
+
+/* Search fields: consistent radius, tinted border, teal-free focus ring. */
+.public-site .portal-search,
+.public-site .portal-list-search {
+  border: 1px solid var(--public-line-blue);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(15, 37, 68, .1);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.public-site .portal-search:focus-within,
+.public-site .portal-list-search:focus-within {
+  border-color: var(--public-blue);
+  box-shadow: 0 8px 22px rgba(20, 73, 143, .16);
+}
+
+.public-site .portal-search input:focus-visible,
+.public-site .portal-list-search input:focus-visible {
+  outline: none;
+}
+
+.public-site .portal-search button,
+.public-site .portal-list-search button,
+.public-site .portal-cms-button {
+  border: 1px solid var(--public-blue);
+  color: #fff;
+  background: var(--public-blue);
+  box-shadow: 0 6px 16px rgba(20, 73, 143, .22);
+}
+
+.public-site .portal-search button:hover,
+.public-site .portal-list-search button:hover,
+.public-site .portal-cms-button:hover {
+  border-color: var(--public-teal);
+  background: var(--public-teal);
+  box-shadow: 0 8px 20px rgba(15, 141, 134, .26);
+}
+
+.public-site .portal-view-all {
+  color: var(--public-blue);
+  font-weight: 650;
+  transition: color 140ms ease;
+}
+
+.public-site .portal-view-all:hover {
+  color: var(--public-teal-dark);
+}
+
+/* ── 4. Cards: tints, refined borders, soft depth ─────────────────── */
+.public-site .portal-listing-card,
+.public-site .portal-quick-card {
+  border: 1px solid var(--public-line);
+  background: #fbfdff;
+  box-shadow: 0 2px 10px rgba(15, 37, 68, .06);
+  transition: border-color 160ms ease, background-color 160ms ease,
+    box-shadow 160ms ease, transform 160ms ease;
+}
+
+.public-site .portal-listing-card:hover,
+.public-site .portal-quick-card:hover {
+  border-color: var(--public-line-blue);
+  background: #fff;
+  box-shadow: var(--public-shadow-hover);
+  transform: translateY(-2px);
+}
+
+/* Coordinated icon chips: blue for navigation, teal for content. */
+.public-site .portal-quick-icon {
+  border: 1px solid var(--public-line-blue);
+  color: var(--public-blue);
+  background: var(--public-tint);
+}
+
+.public-site .portal-listing-icon {
+  border: 1px solid var(--public-line-teal);
+  color: var(--public-teal-dark);
+  background: var(--public-teal-light);
+}
+
+.public-site .portal-card-main h3,
+.public-site .portal-quick-copy strong {
+  color: var(--public-ink);
+}
+
+.public-site .portal-card-copy > p,
+.public-site .portal-quick-copy > span {
+  color: var(--public-muted);
+}
+
+/* Dates / metadata read as a distinct, coordinated badge. */
+.public-site .portal-listing-topline .portal-status {
+  border: 1px solid var(--public-line-indigo);
+  border-radius: 999px;
+  color: var(--public-indigo);
+  background: rgba(65, 73, 176, .07);
+  font-weight: 600;
+}
+
+.public-site .portal-card-extra-links {
+  border-color: var(--public-line);
+  background: var(--public-mist);
+}
+
+.public-site .portal-list-detail-link,
+.public-site .portal-hand-link {
+  color: var(--public-blue);
+}
+
+.public-site .portal-list-detail-link:hover,
+.public-site .portal-hand-link:hover,
+.public-site .portal-hand-link:focus-visible {
+  color: var(--public-teal-dark);
+}
+
+/* ── 5. Footer: sectioned blocks with vertically stacked links ────── */
+.public-site .portal-footer {
+  border: 1px solid var(--public-line);
+  color: var(--public-muted);
+  background: var(--public-mist);
+  box-shadow: var(--public-shadow-soft);
+}
+
+.public-site .portal-footer-main {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.5fr) repeat(auto-fit, minmax(150px, 1fr));
+  align-items: start;
+  gap: 32px clamp(22px, 3vw, 44px);
+  padding-bottom: 30px;
+}
+
+.public-site .portal-footer-about {
+  max-width: 340px;
+}
+
+.public-site .portal-footer .portal-brand-name {
+  color: var(--public-ink);
+}
+
+.public-site .portal-footer .portal-brand-mark {
+  color: #fff;
+  background: var(--public-blue);
+  box-shadow: none;
+}
+
+.public-site .portal-footer .portal-brand-tagline,
+.public-site .portal-footer-desc {
+  color: var(--public-muted);
+}
+
+/* One block per section: heading first, links stacked underneath. */
+.public-site .portal-footer-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  gap: 8px;
+}
+
+.public-site .portal-footer-column h2 {
+  display: block;
+  width: 100%;
+  margin: 0 0 4px;
+  color: var(--public-ink);
+  font-size: 12.5px;
+  font-weight: 750;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.public-site .portal-footer-column h2::after {
+  display: block;
+  width: 30px;
+  height: 3px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: var(--public-teal);
+  opacity: 1;
+}
+
+.public-site .portal-footer-column > a,
+.public-site .portal-footer-column .portal-menu-label,
+.public-site .portal-footer-column .portal-unavailable-link {
+  display: block;
+  width: 100%;
+  padding: 2px 0;
+  color: #3c5470;
+  font-size: 13.5px;
+  line-height: 1.6;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: color 140ms ease, transform 140ms ease;
+}
+
+.public-site .portal-footer-column a:hover,
+.public-site .portal-footer-column a:focus-visible {
+  color: var(--public-blue);
+  transform: translateX(2px);
+}
+
+.public-site .portal-footer-social-link {
+  border-color: var(--public-line);
+  color: var(--public-blue);
+  background: #fff;
+}
+
+.public-site .portal-footer-social-link:hover {
+  border-color: var(--public-teal);
+  color: var(--public-teal-dark);
+  background: var(--public-teal-light);
+}
+
+.public-site .portal-footer-socials {
+  border-top-color: var(--public-line);
+}
+
+.public-site .portal-footer-bottom {
+  border-top: 1px solid var(--public-line-blue);
+  color: var(--public-soft);
+}
+
+/* Tablet: two tidy columns, brand full width on top. */
+@media (max-width: 960px) {
+  .public-site .portal-footer-main {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px 28px;
+  }
+
+  .public-site .portal-footer-about {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+}
+
+/* Phones: every section becomes its own full-width row block. */
+@media (max-width: 680px) {
+  .public-site .portal-footer {
+    width: calc(100% - 24px);
+    border-radius: 16px;
+    padding: 26px 18px 0;
+  }
+
+  .public-site .portal-footer-main {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding-bottom: 20px;
+  }
+
+  .public-site .portal-footer-about {
+    grid-column: auto;
+    max-width: none;
+    padding-bottom: 22px;
+  }
+
+  .public-site .portal-footer-column {
+    width: 100%;
+    padding: 20px 0 8px;
+    border-top: 1px solid var(--public-line-soft);
+  }
+
+  .public-site .portal-footer-column > a,
+  .public-site .portal-footer-column .portal-menu-label {
+    padding: 5px 0;
+    font-size: 14px;
+  }
+
+  .public-site .portal-footer-socials {
+    padding: 18px 0;
+  }
+
+  .public-site .portal-footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 16px 0 20px;
+  }
 }

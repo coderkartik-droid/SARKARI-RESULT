@@ -33,6 +33,12 @@
 
     <h1 class="portal-detail-title" id="resource-title">{{ item.title }}</h1>
 
+    {% if item.image %}
+      <figure class="portal-detail-photo-wrap">
+        <img class="portal-detail-photo" src="{{ item.image.url }}" alt="{{ item.title }}" loading="lazy">
+      </figure>
+    {% endif %}
+
     <div class="portal-detail-meta-bar">
       {% if item.exam %}
         <span class="portal-meta-item">
@@ -153,6 +159,7 @@
         {% for rel in related_items %}
           <article class="portal-listing-card-wrap">
             <a class="portal-listing-card portal-listing-card-page portal-card-main portal-full-card-link" href="{{ rel.detail_url }}">
+              {% if rel.image %}<img class="portal-listing-photo" src="{{ rel.image.url }}" alt="" loading="lazy">{% endif %}
               <div class="portal-card-copy">
                 <div class="portal-listing-topline">
                   <span class="portal-icon portal-listing-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon=config.icon %}</span>

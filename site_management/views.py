@@ -28,6 +28,7 @@ from .forms import (
     ContentSectionForm,
     ExamForm,
     ExamPDFForm,
+    LatestJobForm,
     ManagementUserEditForm,
     PreviousPaperForm,
     RegistrationResourceForm,
@@ -47,6 +48,7 @@ from .models import (
     DEFAULT_SOCIAL_PROFILE_SETTINGS,
     Exam,
     ExamPDF,
+    LatestJob,
     PreviousPaper,
     RegistrationResource,
     ResourceURL,
@@ -880,10 +882,31 @@ def exam_pdf_delete(request, pdf_id):
 
 RESOURCE_MANAGEMENT_PAGE_SIZE = 20
 
-# Registry of the four exam-linked resource sections managed inside the
-# workspace. Each entry maps a URL slug to its model, form and public labels so
-# the shared list/create/edit/detail/delete views can serve all of them.
+# Registry of the resource sections managed inside the workspace (Latest Jobs
+# plus the four exam-linked resource sections). Each entry maps a URL slug to its
+# model, form and public labels so the shared list/create/edit/detail/delete
+# views can serve all of them.
 RESOURCE_SECTIONS = {
+    "latest-jobs": {
+        "key": "latest-jobs",
+        "model": LatestJob,
+        "form": LatestJobForm,
+        "label": "Latest Job",
+        "eyebrow": "LATEST JOBS",
+        "singular": "job",
+        "description": (
+            "Publish latest job postings with an optional photo, an official "
+            "notification URL and/or a downloadable notification PDF. Published "
+            "jobs appear first on the homepage and on the public Latest Jobs page."
+        ),
+        "public_view": "accounts:latest_jobs",
+        "add_label": "Add a job",
+        "has_image": True,
+        "warning": (
+            "The job posting, its uploaded photo and its uploaded PDF will be "
+            "removed from the public website."
+        ),
+    },
     "answer-sheets": {
         "key": "answer-sheets",
         "model": AnswerSheet,
@@ -1112,6 +1135,8 @@ def resource_edit(request, section, pk):
                 saved = form.save(commit=False)
                 if obj.pdf_file and not form.cleaned_data.get("pdf_file"):
                     saved.pdf_file = current_file
+                if config.get("has_image") and obj.image and not form.cleaned_data.get("image"):
+                    saved.image = obj.image
                 saved.save()
                 form.save_m2m()
                 _save_resource_urls(saved, url_formset)

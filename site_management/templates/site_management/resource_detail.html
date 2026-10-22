@@ -25,6 +25,7 @@
         </span>
         {% if object.exam %}<span>Related exam: {{ object.exam.title }}</span>{% else %}<span>Related exam: not linked</span>{% endif %}
         {% if object.description %}<span>{{ object.description }}</span>{% endif %}
+        {% if object.image %}<span><img class="management-thumb management-thumb-large" src="{{ object.image.url }}" alt="" loading="lazy"></span>{% endif %}
         {% if object.exam_year %}<span>Exam year: {{ object.exam_year }}</span>{% endif %}
         {% if object.closing_date %}<span>Last date to apply: {{ object.closing_date|date:"M j, Y" }}</span>{% endif %}
         {% if object.display_date %}<span>Display date: {{ object.display_date|date:"M j, Y" }}</span>{% endif %}

@@ -36,6 +36,7 @@ from site_management.models import (
     Exam,
     ExamLink,
     ExamPDF,
+    LatestJob,
     PreviousPaper,
     RegistrationResource,
     Result,
@@ -539,29 +540,38 @@ def home(request):
         )[:HOMEPAGE_EXAM_LIMIT]
     )
 
-    # Homepage blocks for the exam-linked resource sections (Answer Sheet,
+    # Homepage blocks for the resource sections (Latest Jobs, Answer Sheet,
     # Registration Form, Previous Paper, Result). RESOURCE_PUBLIC_SECTIONS
     # supplies the model, public labels and list/detail route names.
+    # Latest Jobs is pulled out into its own block so the homepage can render it
+    # as the first content section, above every exam/result/paper section.
     resource_blocks = []
+    latest_jobs_block = None
     for section_key, config in RESOURCE_PUBLIC_SECTIONS.items():
         items = list(
             _published_resource_queryset(config["model"])[:HOMEPAGE_ITEM_LIMIT]
         )
         for item in items:
             item.detail_url = reverse(config["detail_name"], args=[item.pk])
-        resource_blocks.append(
-            {
-                "id": section_key,
-                "kicker": config["kicker"],
-                "title": config["title"],
-                "intro": config["intro"],
-                "icon": config["icon"],
-                "kind": config["kind"],
-                "list_url": reverse(config["list_name"]),
-                "items": items,
-                "empty_message": config["empty_message"],
-            }
-        )
+        block = {
+            "id": section_key,
+            "kicker": config["kicker"],
+            "title": config["title"],
+            "intro": config["intro"],
+            "icon": config["icon"],
+            "kind": config["kind"],
+            "list_url": reverse(config["list_name"]),
+            "items": items,
+            "empty_message": config["empty_message"],
+        }
+        if section_key == "latest-jobs":
+            latest_jobs_block = block
+        else:
+            resource_blocks.append(block)
+
+    homepage_resource_blocks = (
+        ([latest_jobs_block] if latest_jobs_block else []) + resource_blocks
+    )
 
     if query:
 
@@ -573,7 +583,7 @@ def home(request):
         upcoming_exam_entries = [
             exam for exam in upcoming_exam_entries if _matches(exam)
         ]
-        for block in resource_blocks:
+        for block in homepage_resource_blocks:
             block["items"] = [
                 item
                 for item in block["items"]
@@ -591,7 +601,7 @@ def home(request):
         len(exam_entries)
         + len(recent_exam_entries)
         + len(upcoming_exam_entries)
-        + sum(len(block["items"]) for block in resource_blocks)
+        + sum(len(block["items"]) for block in homepage_resource_blocks)
     )
 
     exam_blocks = [
@@ -630,6 +640,7 @@ def home(request):
         {
             "exam_blocks": exam_blocks,
             "resource_blocks": resource_blocks,
+            "latest_jobs_block": latest_jobs_block,
             "query": query,
             "result_count": total_matches,
             "has_homepage_content": total_matches > 0,
@@ -960,6 +971,17 @@ def _exam_date_list(request, kind, page_kicker, page_title, page_intro, empty_me
 
 # Public listing/detail configuration for the exam-linked resource sections.
 RESOURCE_PUBLIC_SECTIONS = {
+    "latest-jobs": {
+        "model": LatestJob,
+        "kicker": "LATEST JOBS",
+        "title": "Latest Jobs",
+        "intro": "The newest government job openings with official notification links and photos.",
+        "icon": "briefcase",
+        "kind": "latest-job",
+        "empty_message": "There are no published jobs yet.",
+        "list_name": "accounts:latest_jobs",
+        "detail_name": "accounts:latest_job_detail",
+    },
     "answer-sheets": {
         "model": AnswerSheet,
         "kicker": "ANSWER SHEETS",

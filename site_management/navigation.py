@@ -1,11 +1,11 @@
 """Website Management sidebar navigation.
 
 This module only *organises* the existing management screens into the fixed
-workspace sections. The sidebar contains exactly seven exam-content sections
-(Exams, Upcoming Exams, Recent Exams, Answer Sheet, Registration Form,
-Previous Paper, Result) followed by the five website/system areas (Header,
-Footer, Comments, Users, AI Assistant). It reuses existing views, URLs and
-permissions — no models, routes or stored content are changed.
+workspace sections. The sidebar opens with Latest Jobs, then the seven
+exam-content sections (Exams, Upcoming Exams, Recent Exams, Answer Sheet,
+Registration Form, Previous Paper, Result), followed by the five website/system
+areas (Header, Footer, Comments, Users, AI Assistant). It reuses existing views,
+URLs and permissions — no models, routes or stored content are changed.
 """
 
 from urllib.parse import urlsplit
@@ -117,6 +117,37 @@ ICONS = {
 
 
 SECTIONS = [
+    {
+        "key": "latest-jobs",
+        "label": "Latest Jobs",
+        "icon": "jobs",
+        "eyebrow": "LATEST JOBS",
+        "title": "Latest Jobs",
+        "description": (
+            "Publish latest job postings with an uploaded photo, an official "
+            "notification URL and/or a downloadable notification PDF. Published "
+            "jobs appear first on the homepage and on the public Latest Jobs page."
+        ),
+        "view": "site_management:resource_list",
+        "args": ["latest-jobs"],
+        "groups": [
+            {
+                "label": "Job postings",
+                "items": [
+                    {
+                        "label": "All latest jobs",
+                        "view": "site_management:resource_list",
+                        "args": ["latest-jobs"],
+                    },
+                    {
+                        "label": "Add a job",
+                        "view": "site_management:resource_create",
+                        "args": ["latest-jobs"],
+                    },
+                ],
+            },
+        ],
+    },
     {
         "key": "exams",
         "label": "Exams",

@@ -1,0 +1,55 @@
+{# A single homepage resource/content block. Expects ``block`` in context. #}
+<section class="portal-content-section" id="{{ block.id }}" aria-labelledby="{{ block.id }}-title">
+  <div class="portal-section-heading">
+    <div>
+      <p class="portal-section-kicker">{{ block.kicker }}</p>
+      <h2 id="{{ block.id }}-title">{{ block.title }}</h2>
+      <p>{{ block.intro }}</p>
+    </div>
+    <a class="portal-view-all" href="{{ block.list_url }}">View all <span aria-hidden="true">→</span></a>
+  </div>
+  {% if block.items %}
+    <div class="portal-listing-grid portal-listing-grid-page">
+      {% for item in block.items %}
+        <article class="portal-listing-card-wrap">
+          <a class="portal-listing-card portal-card-main portal-full-card-link" href="{{ item.detail_url }}" aria-label="View details for {{ item.title }}">
+            {% if item.image %}<img class="portal-listing-photo" src="{{ item.image.url }}" alt="" loading="lazy">{% endif %}
+            <div class="portal-card-copy">
+              <div class="portal-listing-topline">
+                <span class="portal-icon portal-listing-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon=block.icon %}</span>
+                {% if item.display_date %}<span class="portal-status">{{ item.display_date|date:"M j, Y" }}</span>{% endif %}
+              </div>
+              <h3>{{ item.title }}</h3>
+              {% if item.description %}<p>{{ item.description|truncatewords:24 }}</p>{% endif %}
+              <span class="portal-list-detail-link">View details <span aria-hidden="true">→</span></span>
+            </div>
+          </a>
+          {% if item.pdf_file or item.official_url or item.resource_urls %}
+            <div class="portal-card-extra-links" aria-label="Downloads and links for {{ item.title }}">
+              {% if item.official_url %}
+                <a class="portal-hand-link" href="{{ item.official_url }}" target="_blank" rel="noopener noreferrer">
+                  <span class="portal-content-link-icon portal-icon">🔗</span>
+                  <span>{% if block.kind == "result" %}View Result{% elif block.kind == "latest-job" %}Official notification{% else %}Official link{% endif %}</span>
+                </a>
+              {% endif %}
+              {% if item.pdf_file %}
+                <a class="portal-hand-link" href="{{ item.pdf_file.url }}" target="_blank" rel="noopener noreferrer">
+                  <span class="portal-content-link-icon portal-icon">📄</span>
+                  <span>Download PDF</span>
+                </a>
+              {% endif %}
+              {% for resource_url in item.resource_urls %}
+                <a class="portal-hand-link" href="{{ resource_url.url }}" {% if resource_url.target == 'new' %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                  <span class="portal-content-link-icon portal-icon">🔗</span>
+                  <span>{{ resource_url.label }}</span>
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="portal-list-empty" role="status">{{ block.empty_message }}</p>
+  {% endif %}
+</section>

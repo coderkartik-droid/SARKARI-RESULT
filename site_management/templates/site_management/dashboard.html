@@ -18,7 +18,7 @@
     <h2 class="management-subheading">Content management</h2>
     <div class="management-quick-grid">
       {% for section in nav_sections %}
-        {% if section.key == "exams" or section.key == "upcoming-exams" or section.key == "recent-exams" or section.key == "answer-sheets" or section.key == "registration-forms" or section.key == "previous-papers" or section.key == "results" %}
+        {% if section.key == "latest-jobs" or section.key == "exams" or section.key == "upcoming-exams" or section.key == "recent-exams" or section.key == "answer-sheets" or section.key == "registration-forms" or section.key == "previous-papers" or section.key == "results" %}
           <a class="management-quick-card" href="{{ section.url }}">
             <strong>{{ section.label }}</strong><span>{{ section.description }}</span>
           </a>

@@ -1313,6 +1313,15 @@
     background: rgba(13, 17, 30, 0.98);
     box-shadow: 0 16px 40px rgba(4, 6, 18, 0.4);
     padding: 16px;
+    /* The panel sits directly under the sticky header. When the menu is open
+       the script locks body scroll, so an uncapped panel would push its last
+       links off-screen and out of reach on short phones. Cap it to the space
+       below the header and let the panel itself scroll. */
+    max-height: calc(100vh - 96px);
+    max-height: calc(100dvh - 96px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     animation: mobile-menu-enter 200ms ease-out;
   }
 
@@ -1396,6 +1405,13 @@
   }
 }
 
+/* Small-screen block for the classic portal shell.
+   NOTE: the opening media query for this block had been lost, so every rule
+   below was leaking into all viewport widths (for example the single-column
+   .portal-listing-grid was overriding the two-column base grid on desktop).
+   Restoring the wrapper keeps these rules on small screens only, which is
+   what they were written for. */
+@media (max-width: 700px) {
   .portal-hero {
     grid-template-columns: minmax(0, 1fr);
     gap: 21px;

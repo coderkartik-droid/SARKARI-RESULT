@@ -46,6 +46,7 @@
         <caption class="management-visually-hidden">{{ config.label }} entries</caption>
         <thead>
           <tr>
+            {% if config.has_image %}<th scope="col">Photo</th>{% endif %}
             <th scope="col">{{ config.label }}</th>
             <th scope="col">Related exam</th>
             <th scope="col">Published</th>
@@ -56,6 +57,15 @@
         <tbody>
           {% for item in page_obj %}
             <tr>
+              {% if config.has_image %}
+                <td>
+                  {% if item.image %}
+                    <img class="management-thumb" src="{{ item.image.url }}" alt="" width="56" height="56" loading="lazy">
+                  {% else %}
+                    <span class="management-thumb management-thumb-empty" aria-hidden="true">—</span>
+                  {% endif %}
+                </td>
+              {% endif %}
               <th scope="row">
                 <span class="management-table-username">
                   <a href="{% url 'site_management:resource_detail' section item.pk %}">{{ item.title }}</a>

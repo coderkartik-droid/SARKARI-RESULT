@@ -1602,3 +1602,98 @@ class Result(PublishedExamResource):
 
     def __str__(self):
         return self.title
+
+
+class LatestJob(PublishedExamResource):
+    """A latest job posting with an uploaded photo.
+
+    Reuses the shared ``PublishedExamResource`` behaviour (title, description,
+    publication status and date, display order, optional related exam, optional
+    notification PDF, official URL, and the publish rules) and adds exactly one
+    new content field: an uploaded photo shown on the public job card. The photo
+    is validated by ``validate_content_image`` and is never stored inside a text
+    field. A replaced or removed photo is deleted only after the database
+    transaction commits, matching the PDF lifecycle of the other resources.
+    """
+
+    exam = models.ForeignKey(
+        Exam,
+        related_name="latest_jobs",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        help_text="Optional exam or recruitment this job posting belongs to.",
+    )
+    official_url = models.CharField(
+        max_length=500,
+        blank=True,
+        validators=[validate_public_url],
+        help_text=(
+            "Official job or notification URL (http/https). Required unless a "
+            "notification PDF is uploaded."
+        ),
+    )
+    pdf_file = models.FileField(
+        upload_to=SafePDFUploadTo("cms/latest_jobs/"),
+        blank=True,
+        validators=[validate_content_pdf],
+        help_text=(
+            "Optional notification PDF. PDF only, maximum size configured with "
+            "CMS_MAX_PDF_SIZE (default 20 MB)."
+        ),
+    )
+    image = models.ImageField(
+        upload_to="cms/latest_jobs/",
+        blank=True,
+        validators=[validate_content_image],
+        error_messages={
+            "invalid_image": "Upload a valid, uncorrupted PNG, JPG, JPEG, or WebP image."
+        },
+        help_text=(
+            "Optional photo shown on the job card. PNG, JPG, JPEG, or WebP, "
+            "maximum size configured with CMS_MAX_IMAGE_SIZE (default 5 MB)."
+        ),
+    )
+
+    class Meta:
+        ordering = ["sort_order", "-created_at"]
+        verbose_name = "Latest job"
+        verbose_name_plural = "Latest jobs"
+
+    def clean(self):
+        super().clean()
+        has_pdf = bool(self.pdf_file and self.pdf_file.name)
+        has_url = bool((self.official_url or "").strip())
+        if not has_pdf and not has_url:
+            raise ValidationError(
+                "Provide an official job URL, a notification PDF, or both."
+            )
+
+    def save(self, *args, **kwargs):
+        previous_image = None
+        if self.pk:
+            previous_image = type(self).objects.filter(pk=self.pk).values_list(
+                "image", flat=True
+            ).first()
+
+        super().save(*args, **kwargs)
+
+        current_image = self.image.name if self.image else ""
+        if previous_image and previous_image != current_image:
+            storage = self.image.storage
+            transaction.on_commit(
+                lambda name=previous_image, file_storage=storage: file_storage.delete(name)
+            )
+
+    def delete(self, *args, **kwargs):
+        image_name = self.image.name if self.image else ""
+        storage = self.image.storage if self.image else None
+        result = super().delete(*args, **kwargs)
+        if image_name and storage:
+            transaction.on_commit(
+                lambda name=image_name, file_storage=storage: file_storage.delete(name)
+            )
+        return result
+
+    def __str__(self):
+        return self.title

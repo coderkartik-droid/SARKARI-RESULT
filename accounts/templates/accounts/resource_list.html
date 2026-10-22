@@ -17,6 +17,7 @@
       {% for item in page_obj %}
         <article class="portal-listing-card-wrap">
           <div class="portal-listing-card portal-listing-card-page portal-card-main">
+            {% if item.image %}<img class="portal-listing-photo" src="{{ item.image.url }}" alt="" loading="lazy">{% endif %}
             <div class="portal-card-copy">
               <div class="portal-listing-topline">
                 <span class="portal-icon portal-listing-icon" aria-hidden="true">{% include "accounts/includes/portal_icon.html" with icon=config.icon %}</span>

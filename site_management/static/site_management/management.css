@@ -313,9 +313,12 @@ div.management-checkbox-grid { display: grid; grid-template-columns: repeat(auto
   .management-message-row { grid-template-columns: minmax(0, 1fr) auto; }
   .management-message-email { grid-column: 1; }
   .management-message-row time { grid-column: 2; grid-row: 2; }
-  .management-message-detail dl > div { grid-template-columns: 1fr; gap: 4px; }
-  border-top: 1px solid #edf1f6;
-  background: #fafbff;
+  .management-message-detail dl > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    border-top: 1px solid #edf1f6;
+    background: #fafbff;
+  }
 }
 
 .management-form-section {
@@ -371,6 +374,7 @@ div.management-checkbox-grid { display: grid; grid-template-columns: repeat(auto
     width: min(88vw, var(--management-sidebar-width));
     max-width: var(--management-sidebar-width);
     height: 100vh;
+    height: 100dvh;
     flex-direction: column;
     transform: translateX(-105%);
     transition: transform .22s ease;
@@ -619,6 +623,10 @@ div.management-checkbox-grid { display: grid; grid-template-columns: repeat(auto
 .management-access-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .management-access-actions form { margin: 0; }
 .management-visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; border: 0; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.management-thumb { display: block; width: 56px; height: 56px; border: 1px solid #e2e8f2; border-radius: 10px; object-fit: cover; background: #f2f5fa; }
+.management-thumb-empty { display: grid; place-items: center; color: var(--management-muted); font-size: 14px; background: #f7f9fc; }
+.management-thumb-large { width: 120px; height: 120px; border-radius: 12px; }
 
 @media (max-width: 560px) {
   .management-filter-field, .management-filter-actions { width: 100%; min-width: 0; }

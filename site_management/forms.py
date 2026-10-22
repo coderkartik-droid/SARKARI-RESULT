@@ -11,6 +11,7 @@ from .models import (
     ContentSection,
     Exam,
     ExamPDF,
+    LatestJob,
     PreviousPaper,
     RegistrationResource,
     ResourceURL,
@@ -1352,6 +1353,7 @@ ANSWER_SHEET_PUBLIC_LOCATION = "Public location: the Answer Sheet page. "
 REGISTRATION_PUBLIC_LOCATION = "Public location: the Registration Form page. "
 PREVIOUS_PAPER_PUBLIC_LOCATION = "Public location: the Previous Paper page. "
 RESULT_PUBLIC_LOCATION = "Public location: the Result page. "
+LATEST_JOB_PUBLIC_LOCATION = "Public location: the Latest Jobs page and the homepage. "
 
 
 class ResourceURLForm(ManagementForm):
@@ -1628,5 +1630,78 @@ class ResultForm(ExamResourceForm):
             self.add_error(
                 "official_url",
                 "Provide an official result URL, a result PDF, or both.",
+            )
+
+
+class LatestJobForm(ExamResourceForm):
+    """Create or edit a latest job posting (photo, official URL and/or PDF)."""
+
+    location_prefix = LATEST_JOB_PUBLIC_LOCATION
+    pdf_label = "Notification PDF (optional)"
+    groups = (
+        (
+            "Job posting",
+            ("title", "exam", "description", "image", "official_url", "pdf_file"),
+        ),
+        (
+            "Publishing",
+            ("status", "published_date", "sort_order", "is_active"),
+        ),
+    )
+
+    class Meta:
+        model = LatestJob
+        fields = [
+            "title",
+            "exam",
+            "description",
+            "image",
+            "official_url",
+            "pdf_file",
+            "status",
+            "published_date",
+            "sort_order",
+            "is_active",
+        ]
+        labels = {
+            "title": "Job title",
+            "exam": "Related exam (optional)",
+            "description": "Description or job details",
+            "image": "Photo (optional)",
+            "official_url": "Official job URL (optional)",
+            "status": "Publication status",
+            "published_date": "Publication date (optional)",
+            "sort_order": "Display order",
+            "is_active": "Active",
+        }
+        help_texts = {
+            "title": "Shown as the heading of the public job card and detail page.",
+            "exam": "Optional exam or recruitment this job posting belongs to.",
+            "description": "Short summary shown on the job card and detail page.",
+            "official_url": "Official notification or application page (http/https). Provide this, a notification PDF, or both.",
+            "status": "Only published jobs appear on the public website.",
+            "published_date": "Leave empty to publish immediately, or set a future date to hide the job until then.",
+            "sort_order": "Lower numbers appear first. Jobs also appear first on the homepage.",
+            "is_active": "Inactive jobs are hidden from the public website.",
+        }
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "image" in self.fields:
+            self.fields["image"].widget.attrs["accept"] = "image/png,image/jpeg,image/webp"
+            self.fields["image"].widget.attrs["data-test-link"] = "true"
+
+    def _require_pdf_or_url(self, cleaned):
+        has_pdf = bool(cleaned.get("pdf_file")) or bool(
+            self.instance.pk and self.instance.pdf_file
+        )
+        has_url = bool((cleaned.get("official_url") or "").strip())
+        if not has_pdf and not has_url:
+            self.add_error(
+                "official_url",
+                "Provide an official job URL, a notification PDF, or both.",
             )
 
